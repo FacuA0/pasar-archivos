@@ -231,7 +231,7 @@ public class Transferencia extends Thread {
                 if (modificadoB[7] >= 0) modificado = modificado | ((long) modificadoB[7]);
                 else modificado = modificado | ((long) (modificadoB[7] + 256));
                 
-                // Empezar a escribir el archivo
+                // Determinar el nombre final del archivo considerando duplicados
                 String ruta = System.getProperty("user.home") + "/Desktop/" + nombre;
                 int i = 2;
                 while (new File(ruta).exists()) {

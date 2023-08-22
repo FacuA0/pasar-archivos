@@ -97,10 +97,10 @@ public class Transfiriendo extends javax.swing.JFrame {
         else if (bytes < 1000000000) { // 100 MB - 1 GB
             return Math.floor(bytesF / 1000000) + " MB";
         }
-        else if (bytes < 1000000000) { // 1 - 10 GB
+        else if (bytes < 10000000000L) { // 1 - 10 GB
             return (Math.floor(bytesF / 10000000) / 100) + " GB";
         }
-        else if (bytes < 1000000000) { // 10 MB - 100 GB
+        else if (bytes < 100000000000L) { // 10 MB - 100 GB
             return (Math.floor(bytesF / 100000000) / 10) + " GB";
         }
         else { // >= 100 GB
