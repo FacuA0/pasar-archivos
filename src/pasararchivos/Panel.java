@@ -1,6 +1,8 @@
 package pasararchivos;
 
 import java.awt.EventQueue;
+import java.awt.Image;
+import java.awt.Toolkit;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -8,6 +10,7 @@ import java.util.Iterator;
 import java.util.Map;
 import javax.swing.DefaultListModel;
 import javax.swing.DropMode;
+import javax.swing.Icon;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
@@ -33,6 +36,8 @@ public class Panel extends javax.swing.JFrame {
         setResizable(false);
         setAlwaysOnTop(true);
         setLocationRelativeTo(null);
+        setIconImage(Toolkit.getDefaultToolkit().getImage("src/images/icono.png"));
+        
         // Listas
         modeloArchivos = new DefaultListModel<>();
         listaArchivos.setModel(modeloArchivos);

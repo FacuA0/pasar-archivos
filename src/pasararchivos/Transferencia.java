@@ -91,13 +91,16 @@ public class Transferencia extends Thread {
                 String nombre = item.archivo.getName();
                 FileInputStream fileIO = new FileInputStream(item.archivo);
                 
+                // Abrir ventana de progreso
                 panel.setVisible(true);
                 panel.setModo(Modo.ENVIAR);
                 panel.setNombre(nombre);
 
+                // Crear conexión
                 Socket socket = new Socket(item.ip, 9060);
                 OutputStream stream = socket.getOutputStream();
 
+                // Comprobar que la longitud del nombre no supere los 255 bytes
                 byte[] nombreBytes = nombre.getBytes();
                 if (nombreBytes.length > 255) {
                     throw new Exception("Nombre de archivo muy grande");
@@ -109,7 +112,20 @@ public class Transferencia extends Thread {
                 // Bytes: Nombre de archivo
                 stream.write(nombreBytes);
                 
-                // Longitud de archivo
+                // Enviar última modificación de archivo
+                long modificado = item.archivo.lastModified();
+                byte[] modificadoB = new byte[8];
+                modificadoB[0] = (byte) ((modificado >> 56) & 0xFF);
+                modificadoB[1] = (byte) ((modificado >> 48) & 0xFF);
+                modificadoB[2] = (byte) ((modificado >> 40) & 0xFF);
+                modificadoB[3] = (byte) ((modificado >> 32) & 0xFF);
+                modificadoB[4] = (byte) ((modificado >> 24) & 0xFF);
+                modificadoB[5] = (byte) ((modificado >> 16) & 0xFF);
+                modificadoB[6] = (byte) ((modificado >> 8) & 0xFF);
+                modificadoB[7] = (byte) (modificado & 0xFF);
+                stream.write(modificadoB);
+                
+                // Enviar longitud de archivo
                 long largo = item.archivo.length();
                 byte[] longitud = new byte[8];
                 longitud[0] = (byte) ((largo >> 56) & 0xFF);
@@ -127,12 +143,15 @@ public class Transferencia extends Thread {
                 long progress = 0;
                 long velocidad = 0;
                 boolean fin = false;
+                
+                // Enviar el contenido del archivo
                 while (!fin) {
                     byte[] bytes = fileIO.readNBytes(4096);
                     stream.write(bytes);
                     progress += bytes.length;
                     velocidad += bytes.length;
                     
+                    // Cada cierto tiempo, actualizar la ventana de progreso
                     if (System.currentTimeMillis() - time > 16) {
                         panel.setDatos(progress, largo, velocidad * 62);
                         time = System.currentTimeMillis();
@@ -143,6 +162,7 @@ public class Transferencia extends Thread {
                 
                 panel.setDatos(progress, largo, 0);
                 
+                // Cerrar todo
                 fileIO.close();
                 socket.close();
                 
@@ -172,13 +192,13 @@ public class Transferencia extends Thread {
                 Socket socket = server.accept();
                 InputStream stream = socket.getInputStream();
                 
-                // Longitud del nombre de archivo
+                // Recibir longitud del nombre de archivo
                 int l = stream.read();
                 
                 if (l == -1) 
                     throw new Exception("Se cerró la conexión de forma temprana");
                 
-                // Nombre de archivo
+                // Recibir nombre de archivo
                 byte[] nombreBytes = stream.readNBytes(l);
                 
                 if (nombreBytes.length < l) 
@@ -186,17 +206,39 @@ public class Transferencia extends Thread {
                 
                 String nombre = new String(nombreBytes);
                 
-                File archivo = new File(System.getProperty("user.home") + "/Desktop/" + nombre);
-                FileOutputStream fileIO = new FileOutputStream(archivo);
-                
+                // Abrir ventana de progreso
                 panel.setVisible(true);
                 panel.setModo(Modo.RECIBIR);
                 panel.setNombre(nombre);
                 
+                // Recibir fecha de modificación
+                byte[] modificadoB = stream.readNBytes(8);
+                long modificado = 0;
+                if (modificadoB[0] >= 0) modificado = modificado | ((long) modificadoB[0] << 56);
+                else modificado = modificado | ((long) (modificadoB[0] + 256) << 56);
+                if (modificadoB[1] >= 0) modificado = modificado | ((long) modificadoB[1] << 48);
+                else modificado = modificado | ((long) (modificadoB[1] + 256) << 48);
+                if (modificadoB[2] >= 0) modificado = modificado | ((long) modificadoB[2] << 40);
+                else modificado = modificado | ((long) (modificadoB[2] + 256) << 40);
+                if (modificadoB[3] >= 0) modificado = modificado | ((long) modificadoB[3] << 32);
+                else modificado = modificado | ((long) (modificadoB[3] + 256) << 32);
+                if (modificadoB[4] >= 0) modificado = modificado | ((long) modificadoB[4] << 24);
+                else modificado = modificado | ((long) (modificadoB[4] + 256) << 24);
+                if (modificadoB[5] >= 0) modificado = modificado | ((long) modificadoB[5] << 16);
+                else modificado = modificado | ((long) (modificadoB[5] + 256) << 16);
+                if (modificadoB[6] >= 0) modificado = modificado | ((long) modificadoB[6] << 8);
+                else modificado = modificado | ((long) (modificadoB[6] + 256) << 8);
+                if (modificadoB[7] >= 0) modificado = modificado | ((long) modificadoB[7]);
+                else modificado = modificado | ((long) (modificadoB[7] + 256));
+                
+                // Empezar a escribir el archivo
+                File archivo = new File(System.getProperty("user.home") + "/Desktop/" + nombre);
+                FileOutputStream fileIO = new FileOutputStream(archivo);
+                
+                archivo.setLastModified(modificado);
+                
+                // Recibir longitud de archivo
                 byte[] longitud = stream.readNBytes(8);
-                for (byte b: longitud) {
-                    System.out.println(b);
-                }
                 long largo = 0;
                 if (longitud[0] >= 0) largo = largo | ((long) longitud[0] << 56);
                 else largo = largo | ((long) (longitud[0] + 256) << 56);
@@ -221,12 +263,14 @@ public class Transferencia extends Thread {
                 long time = System.currentTimeMillis();
                 long velocidad = 0;
                 
+                // Empezar a guardar el archivo
                 while (!fin) {
                     byte[] bytes = stream.readNBytes((int) Math.min(largo - progress, 4096));
                     progress += bytes.length;
                     velocidad += bytes.length;
                     fileIO.write(bytes);
                     
+                    // Cada cierto tiempo, actualizar la ventana de progreso.
                     if (System.currentTimeMillis() - time > 16) {
                         panel.setDatos(progress, largo, velocidad * 62);
                         time = System.currentTimeMillis();
@@ -235,10 +279,9 @@ public class Transferencia extends Thread {
                     if (progress >= largo) fin = true;
                 }
                 
+                // Cerrar todo
                 socket.close();
                 fileIO.close();
-                
-                System.out.println("Cerrando");
                 
                 panel.setVisible(false);
                 //JOptionPane.showMessageDialog(PasarArchivos.panel, "La transferencia fue recibida con éxito.");
@@ -251,6 +294,15 @@ public class Transferencia extends Thread {
                 e.printStackTrace();
             }
         }
+    }
+    
+    private long escribirArrayNumero(long numero, byte[] lista, int posicion) {
+        int bits = (lista.length - posicion - 1) * 8;
+        
+        if (lista[posicion] >= 0) 
+            return numero | ((long) lista[posicion] << bits);
+        else 
+            return numero | ((long) (lista[6] + 256) << bits);
     }
     
     public static enum Modo {

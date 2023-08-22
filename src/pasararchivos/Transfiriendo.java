@@ -1,6 +1,7 @@
 package pasararchivos;
 
 import java.awt.Color;
+import java.awt.Toolkit;
 import java.util.ArrayList;
 import java.util.Locale;
 
@@ -17,10 +18,13 @@ public class Transfiriendo extends javax.swing.JFrame {
     public Transfiriendo() {
         initComponents();
         
+        // Ventana
         setAutoRequestFocus(true);
         setResizable(false);
         setAlwaysOnTop(true);
+        setIconImage(Toolkit.getDefaultToolkit().getImage("src/images/icono.png"));
         
+        // Variables
         promedioVelocidad = new ArrayList(5);
         modo = Transferencia.Modo.ENVIAR;
     }
