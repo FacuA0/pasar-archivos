@@ -8,8 +8,8 @@ import java.util.Locale;
  * @author Facu
  */
 public class Transfiriendo extends javax.swing.JFrame {
-    
     ArrayList<Long> promedioVelocidad;
+    Transferencia.Modo modo;
 
     /**
      * Creates new form Transfiriendo
@@ -22,10 +22,18 @@ public class Transfiriendo extends javax.swing.JFrame {
         setAlwaysOnTop(true);
         
         promedioVelocidad = new ArrayList(5);
+        modo = Transferencia.Modo.ENVIAR;
     }
 
     public void setNombre(String archivo) {
-        txtNombre.setText("Transfiriendo " + archivo);
+        if (modo == Transferencia.Modo.ENVIAR) {
+            setTitle("Transfiriendo...");
+            txtNombre.setText("Transfiriendo " + archivo);
+        }
+        else {
+            setTitle("Recibiendo...");
+            txtNombre.setText("Recibiendo " + archivo);
+        }
     }
     
     public void setDatos(long pasados, long total, long velocidad) {
@@ -53,10 +61,12 @@ public class Transfiriendo extends javax.swing.JFrame {
         String mbTotales = getMedida(total);
         String mbps = getMedida(velocidad) + "/s";
         
-        
-        
         txtDatos.setText(porcentaje + " (" + mbPasados + " / " + mbTotales + ") - " + mbps);
         //txtDatos.setText(pasados + " / " + total + " (" + (progreso * 100) + ")");
+    }
+    
+    public void setModo(Transferencia.Modo modo) {
+        this.modo = modo;
     }
     
     public String getMedida(long bytes) {
@@ -102,7 +112,7 @@ public class Transfiriendo extends javax.swing.JFrame {
         }
         super.setVisible(visible);
     }
-
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always

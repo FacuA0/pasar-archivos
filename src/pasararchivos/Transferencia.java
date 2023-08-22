@@ -40,8 +40,8 @@ public class Transferencia extends Thread {
         pendientes = new ArrayList();
         panel = new Transfiriendo();
         
-        envio = new Transferencia(Modo.ENVIO);
-        recepcion = new Transferencia(Modo.RECEPCION);
+        envio = new Transferencia(Modo.ENVIAR);
+        recepcion = new Transferencia(Modo.RECIBIR);
         
         envio.start();
         recepcion.start();
@@ -63,7 +63,7 @@ public class Transferencia extends Thread {
     }
     
     public void run() {
-        if (modo == Modo.ENVIO) {
+        if (modo == Modo.ENVIAR) {
             enviar();
         }
         else {
@@ -74,7 +74,6 @@ public class Transferencia extends Thread {
     private void enviar() {
         while (true) {
             if (pendientes.isEmpty()) {
-                if (panel.isVisible()) panel.setVisible(false);
                 try {
                     Thread.sleep(50);
                 }
@@ -93,6 +92,7 @@ public class Transferencia extends Thread {
                 FileInputStream fileIO = new FileInputStream(item.archivo);
                 
                 panel.setVisible(true);
+                panel.setModo(Modo.ENVIAR);
                 panel.setNombre(nombre);
 
                 Socket socket = new Socket(item.ip, 9060);
@@ -145,6 +145,8 @@ public class Transferencia extends Thread {
                 
                 fileIO.close();
                 socket.close();
+                
+                panel.setVisible(false);
                 //JOptionPane.showMessageDialog(PasarArchivos.panel, "El archivo fue transferido con éxito");
             }
             catch (FileNotFoundException e) {
@@ -188,6 +190,7 @@ public class Transferencia extends Thread {
                 FileOutputStream fileIO = new FileOutputStream(archivo);
                 
                 panel.setVisible(true);
+                panel.setModo(Modo.RECIBIR);
                 panel.setNombre(nombre);
                 
                 byte[] longitud = stream.readNBytes(8);
@@ -212,26 +215,32 @@ public class Transferencia extends Thread {
                 if (longitud[7] >= 0) largo = largo | ((long) longitud[7]);
                 else largo = largo | ((long) (longitud[7] + 256));
                 
-                //System.out.println(largo);
-                
                 long progress = 0;
                 boolean fin = false;
                 
                 long time = System.currentTimeMillis();
+                long velocidad = 0;
                 
                 while (!fin) {
                     byte[] bytes = stream.readNBytes((int) Math.min(largo - progress, 4096));
                     progress += bytes.length;
+                    velocidad += bytes.length;
                     fileIO.write(bytes);
+                    
+                    if (System.currentTimeMillis() - time > 16) {
+                        panel.setDatos(progress, largo, velocidad * 62);
+                        time = System.currentTimeMillis();
+                        velocidad = 0;
+                    }
                     if (progress >= largo) fin = true;
                 }
                 
-                System.out.println("Hola 2");
                 socket.close();
-                System.out.println("Hola 3");
                 fileIO.close();
-                System.out.println("Hola 4");
                 
+                System.out.println("Cerrando");
+                
+                panel.setVisible(false);
                 //JOptionPane.showMessageDialog(PasarArchivos.panel, "La transferencia fue recibida con éxito.");
             } 
             catch (IOException ex) {
@@ -244,9 +253,9 @@ public class Transferencia extends Thread {
         }
     }
     
-    enum Modo {
-        ENVIO,
-        RECEPCION
+    public static enum Modo {
+        ENVIAR,
+        RECIBIR
     }
     
     public static class Elementos {

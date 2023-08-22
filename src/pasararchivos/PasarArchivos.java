@@ -61,18 +61,6 @@ public class PasarArchivos {
         
         crearIconoBandeja();
         
-        byte[] longitud = new byte[] {0, 0, 98, -102};
-        long largo = 0;
-        if (longitud[0] >= 0) largo = largo | ((long) longitud[0] << 24);
-        else largo = largo | ((long) (longitud[0] + 256) << 24);
-        if (longitud[1] >= 0) largo = largo | ((long) longitud[1] << 16);
-        else largo = largo | ((long) (longitud[1] + 256) << 16);
-        if (longitud[2] >= 0) largo = largo | ((long) longitud[2] << 8);
-        else largo = largo | ((long) (longitud[2] + 256) << 8);
-        if (longitud[3] >= 0) largo = largo | ((long) longitud[3]);
-        else largo = largo | ((long) (longitud[3] + 256));
-        
-        System.out.println(largo);
         /*
         
         try {
