@@ -232,10 +232,19 @@ public class Transferencia extends Thread {
                 else modificado = modificado | ((long) (modificadoB[7] + 256));
                 
                 // Empezar a escribir el archivo
-                File archivo = new File(System.getProperty("user.home") + "/Desktop/" + nombre);
-                FileOutputStream fileIO = new FileOutputStream(archivo);
+                String ruta = System.getProperty("user.home") + "/Desktop/" + nombre;
+                int i = 2;
+                while (new File(ruta).exists()) {
+                    int punto = nombre.lastIndexOf(".");
+                    String sufijo = punto != -1 ? nombre.substring(punto) : "";
+                    String nombre2 = nombre.substring(0, punto);
+                    ruta = System.getProperty("user.home") + "/Desktop/" + nombre2 + " (" + (i++) + ")" + sufijo;
+                }
                 
-                archivo.setLastModified(modificado);
+                File archivo = new File(ruta);
+                archivo.createNewFile();
+                
+                FileOutputStream fileIO = new FileOutputStream(archivo);
                 
                 // Recibir longitud de archivo
                 byte[] longitud = stream.readNBytes(8);
@@ -282,6 +291,8 @@ public class Transferencia extends Thread {
                 // Cerrar todo
                 socket.close();
                 fileIO.close();
+                
+                archivo.setLastModified(modificado);
                 
                 panel.setVisible(false);
                 //JOptionPane.showMessageDialog(PasarArchivos.panel, "La transferencia fue recibida con éxito.");
