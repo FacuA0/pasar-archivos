@@ -22,7 +22,7 @@ public class Transferencia extends Thread {
     private static Transferencia envio, recepcion;
     private static ServerSocket server;
     private static ArrayList<Elementos> pendientes;
-    public static Transfiriendo panel;
+    public static Transfiriendo panelEnviar, panelRecibir;
     Modo modo;
     
     public Transferencia(Modo modo) {
@@ -38,7 +38,8 @@ public class Transferencia extends Thread {
         }
         
         pendientes = new ArrayList();
-        panel = new Transfiriendo();
+        panelEnviar = new Transfiriendo();
+        panelRecibir = new Transfiriendo();
         
         envio = new Transferencia(Modo.ENVIAR);
         recepcion = new Transferencia(Modo.RECIBIR);
@@ -92,9 +93,9 @@ public class Transferencia extends Thread {
                 FileInputStream fileIO = new FileInputStream(item.archivo);
                 
                 // Abrir ventana de progreso
-                panel.setVisible(true);
-                panel.setModo(Modo.ENVIAR);
-                panel.setNombre(nombre);
+                panelEnviar.setVisible(true);
+                panelEnviar.setModo(Modo.ENVIAR);
+                panelEnviar.setNombre(nombre);
 
                 // Crear conexión
                 Socket socket = new Socket(item.ip, 9060);
@@ -153,20 +154,20 @@ public class Transferencia extends Thread {
                     
                     // Cada cierto tiempo, actualizar la ventana de progreso
                     if (System.currentTimeMillis() - time > 16) {
-                        panel.setDatos(progress, largo, velocidad * 62);
+                        panelEnviar.setDatos(progress, largo, velocidad * 62);
                         time = System.currentTimeMillis();
                         velocidad = 0;
                     }
                     if (bytes.length == 0) fin = true;
                 }
                 
-                panel.setDatos(progress, largo, 0);
+                panelEnviar.setDatos(progress, largo, 0);
                 
                 // Cerrar todo
                 fileIO.close();
                 socket.close();
                 
-                panel.setVisible(false);
+                panelEnviar.setVisible(false);
                 //JOptionPane.showMessageDialog(PasarArchivos.panel, "El archivo fue transferido con éxito");
             }
             catch (FileNotFoundException e) {
@@ -207,9 +208,9 @@ public class Transferencia extends Thread {
                 String nombre = new String(nombreBytes);
                 
                 // Abrir ventana de progreso
-                panel.setVisible(true);
-                panel.setModo(Modo.RECIBIR);
-                panel.setNombre(nombre);
+                panelRecibir.setVisible(true);
+                panelRecibir.setModo(Modo.RECIBIR);
+                panelRecibir.setNombre(nombre);
                 
                 // Recibir fecha de modificación
                 byte[] modificadoB = stream.readNBytes(8);
@@ -281,12 +282,14 @@ public class Transferencia extends Thread {
                     
                     // Cada cierto tiempo, actualizar la ventana de progreso.
                     if (System.currentTimeMillis() - time > 16) {
-                        panel.setDatos(progress, largo, velocidad * 62);
+                        panelRecibir.setDatos(progress, largo, velocidad * 62);
                         time = System.currentTimeMillis();
                         velocidad = 0;
                     }
                     if (progress >= largo) fin = true;
                 }
+                
+                panelRecibir.setDatos(progress, largo, 0);
                 
                 // Cerrar todo
                 socket.close();
@@ -294,7 +297,7 @@ public class Transferencia extends Thread {
                 
                 archivo.setLastModified(modificado);
                 
-                panel.setVisible(false);
+                panelRecibir.setVisible(false);
                 //JOptionPane.showMessageDialog(PasarArchivos.panel, "La transferencia fue recibida con éxito.");
             } 
             catch (IOException ex) {
