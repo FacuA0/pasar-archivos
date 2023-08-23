@@ -1,6 +1,7 @@
 package pasararchivos;
 
 import java.awt.AWTException;
+import java.awt.Frame;
 import java.awt.Image;
 import java.awt.SystemTray;
 import java.awt.Toolkit;
@@ -135,6 +136,14 @@ public class PasarArchivos {
             public void mouseClicked(MouseEvent e) {
                 panel.setLocation(e.getX() - panel.getWidth(), e.getY() - panel.getHeight());
                 panel.setVisible(true);
+                
+                int estado = panel.getExtendedState();
+                if ((estado & Frame.ICONIFIED) == Frame.ICONIFIED) {
+                    panel.setExtendedState(estado - Frame.ICONIFIED);
+                }
+                else {
+                    panel.setExtendedState(estado | Frame.ICONIFIED);
+                }
             }
             
             @Override public void mouseEntered(MouseEvent e) {}
