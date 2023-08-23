@@ -22,9 +22,9 @@ public class Transferencia extends Thread {
     private static final String LOCK = "lock";
     private static Transferencia servidor;
     private static ServerSocket server;
-    private static ArrayList<Elementos> pendientes;
     public static Progreso panelEnviar, panelRecibir;
-    Socket socket;
+    Elementos item; // Sólo modo ENVIAR
+    Socket socket; // Sólo modo RECIBIR
     Modo modo;
     
     public Transferencia(Modo modo) {
@@ -39,7 +39,6 @@ public class Transferencia extends Thread {
             throw new RuntimeException(e);
         }
         
-        pendientes = new ArrayList();
         panelEnviar = new Progreso();
         panelRecibir = new Progreso();
         
@@ -53,12 +52,13 @@ public class Transferencia extends Thread {
             ip = InetAddress.getByName(direccion);
         } catch (UnknownHostException ex) {return;}
         
-        synchronized (LOCK) {            
-            for (String ruta : archivos) {
-                File archivo = new File(ruta);
-                Elementos e = new Elementos(ip, archivo);
-                pendientes.add(e);
-            }
+        for (String ruta : archivos) {
+            File archivo = new File(ruta);
+            Elementos e = new Elementos(ip, archivo);
+            
+            Transferencia enviar = new Transferencia(Modo.ENVIAR);
+            enviar.item = e;
+            enviar.start();
         }
     }
     
@@ -104,117 +104,101 @@ public class Transferencia extends Thread {
     }
     
     private void enviar() {
-        while (true) {
-            if (pendientes.isEmpty()) {
-                try {
-                    Thread.sleep(50);
-                }
-                catch (InterruptedException ex) {}
-                
-                continue;
-            }
-            
-            Elementos item;
-            synchronized (LOCK) {
-                item = pendientes.remove(0);
-            }
-            
-            try {
-                String nombre = item.archivo.getName();
-                FileInputStream fileIO = new FileInputStream(item.archivo);
-                
-                // Abrir ventana de progreso
-                panelEnviar.setVisible(true);
-                panelEnviar.setModo(Progreso.Modo.ENVIAR);
-                panelEnviar.setNombre(nombre);
+        try {
+            String nombre = item.archivo.getName();
+            FileInputStream fileIO = new FileInputStream(item.archivo);
 
-                // Crear conexión
-                Socket socket = new Socket(item.ip, 9060);
-                OutputStream stream = socket.getOutputStream();
+            // Abrir ventana de progreso
+            panelEnviar.setVisible(true);
+            panelEnviar.setModo(Progreso.Modo.ENVIAR);
+            panelEnviar.setNombre(nombre);
 
-                // Comprobar que la longitud del nombre no supere los 255 bytes
-                byte[] nombreBytes = nombre.getBytes();
-                if (nombreBytes.length > 255) {
-                    throw new Exception("Nombre de archivo muy grande");
+            // Crear conexión
+            Socket socket = new Socket(item.ip, 9060);
+            OutputStream stream = socket.getOutputStream();
+
+            // Comprobar que la longitud del nombre no supere los 255 bytes
+            byte[] nombreBytes = nombre.getBytes();
+            if (nombreBytes.length > 255) {
+                throw new Exception("Nombre de archivo muy grande");
+            }
+
+            // Byte 1: Longitud del nombre de archivo
+            stream.write((byte) ((nombreBytes.length + 128) % 256 - 128));
+
+            // Bytes: Nombre de archivo
+            stream.write(nombreBytes);
+
+            // Enviar última modificación de archivo
+            long modificado = item.archivo.lastModified();
+            byte[] modificadoB = new byte[8];
+            modificadoB[0] = (byte) ((modificado >> 56) & 0xFF);
+            modificadoB[1] = (byte) ((modificado >> 48) & 0xFF);
+            modificadoB[2] = (byte) ((modificado >> 40) & 0xFF);
+            modificadoB[3] = (byte) ((modificado >> 32) & 0xFF);
+            modificadoB[4] = (byte) ((modificado >> 24) & 0xFF);
+            modificadoB[5] = (byte) ((modificado >> 16) & 0xFF);
+            modificadoB[6] = (byte) ((modificado >> 8) & 0xFF);
+            modificadoB[7] = (byte) (modificado & 0xFF);
+            stream.write(modificadoB);
+
+            // Enviar longitud de archivo
+            long largo = item.archivo.length();
+            byte[] longitud = new byte[8];
+            longitud[0] = (byte) ((largo >> 56) & 0xFF);
+            longitud[1] = (byte) ((largo >> 48) & 0xFF);
+            longitud[2] = (byte) ((largo >> 40) & 0xFF);
+            longitud[3] = (byte) ((largo >> 32) & 0xFF);
+            longitud[4] = (byte) ((largo >> 24) & 0xFF);
+            longitud[5] = (byte) ((largo >> 16) & 0xFF);
+            longitud[6] = (byte) ((largo >> 8) & 0xFF);
+            longitud[7] = (byte) (largo & 0xFF);
+            stream.write(longitud);
+
+            long time = System.currentTimeMillis();
+
+            long progress = 0;
+            long velocidad = 0;
+            boolean fin = false;
+
+            // Enviar el contenido del archivo
+            while (!fin) {
+                byte[] bytes = fileIO.readNBytes(4096);
+                stream.write(bytes);
+                progress += bytes.length;
+                velocidad += bytes.length;
+
+                // Cada cierto tiempo, actualizar la ventana de progreso
+                if (System.currentTimeMillis() - time > 16) {
+                    panelEnviar.setDatos(progress, largo, velocidad * 62);
+                    time = System.currentTimeMillis();
+                    velocidad = 0;
                 }
-                
-                // Byte 1: Longitud del nombre de archivo
-                stream.write((byte) ((nombreBytes.length + 128) % 256 - 128));
-                
-                // Bytes: Nombre de archivo
-                stream.write(nombreBytes);
-                
-                // Enviar última modificación de archivo
-                long modificado = item.archivo.lastModified();
-                byte[] modificadoB = new byte[8];
-                modificadoB[0] = (byte) ((modificado >> 56) & 0xFF);
-                modificadoB[1] = (byte) ((modificado >> 48) & 0xFF);
-                modificadoB[2] = (byte) ((modificado >> 40) & 0xFF);
-                modificadoB[3] = (byte) ((modificado >> 32) & 0xFF);
-                modificadoB[4] = (byte) ((modificado >> 24) & 0xFF);
-                modificadoB[5] = (byte) ((modificado >> 16) & 0xFF);
-                modificadoB[6] = (byte) ((modificado >> 8) & 0xFF);
-                modificadoB[7] = (byte) (modificado & 0xFF);
-                stream.write(modificadoB);
-                
-                // Enviar longitud de archivo
-                long largo = item.archivo.length();
-                byte[] longitud = new byte[8];
-                longitud[0] = (byte) ((largo >> 56) & 0xFF);
-                longitud[1] = (byte) ((largo >> 48) & 0xFF);
-                longitud[2] = (byte) ((largo >> 40) & 0xFF);
-                longitud[3] = (byte) ((largo >> 32) & 0xFF);
-                longitud[4] = (byte) ((largo >> 24) & 0xFF);
-                longitud[5] = (byte) ((largo >> 16) & 0xFF);
-                longitud[6] = (byte) ((largo >> 8) & 0xFF);
-                longitud[7] = (byte) (largo & 0xFF);
-                stream.write(longitud);
-                
-                long time = System.currentTimeMillis();
-                
-                long progress = 0;
-                long velocidad = 0;
-                boolean fin = false;
-                
-                // Enviar el contenido del archivo
-                while (!fin) {
-                    byte[] bytes = fileIO.readNBytes(4096);
-                    stream.write(bytes);
-                    progress += bytes.length;
-                    velocidad += bytes.length;
-                    
-                    // Cada cierto tiempo, actualizar la ventana de progreso
-                    if (System.currentTimeMillis() - time > 16) {
-                        panelEnviar.setDatos(progress, largo, velocidad * 62);
-                        time = System.currentTimeMillis();
-                        velocidad = 0;
-                    }
-                    if (bytes.length == 0) fin = true;
-                }
-                
-                panelEnviar.setDatos(progress, largo, 0);
-                
-                // Cerrar todo
-                fileIO.close();
-                socket.close();
-                
-                panelEnviar.setVisible(false);
-                //JOptionPane.showMessageDialog(PasarArchivos.panel, "El archivo fue transferido con éxito");
+                if (bytes.length == 0) fin = true;
             }
-            catch (FileNotFoundException e) {
-                System.err.println("Hubo un error al abrir el archivo.");
-                e.printStackTrace();
-                JOptionPane.showMessageDialog(PasarArchivos.panel, "Error al abrir el archivo.", "Error", JOptionPane.ERROR_MESSAGE);
-            }
-            catch (IOException ex) {
-                ex.printStackTrace();
-                JOptionPane.showMessageDialog(PasarArchivos.panel, "Hubo un error de entrada/salida.", "Error de IO", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            catch (Exception e) {
-                e.printStackTrace();
-                JOptionPane.showMessageDialog(PasarArchivos.panel, "Hubo un error general.", "Error", JOptionPane.ERROR_MESSAGE);
-            }
+
+            panelEnviar.setDatos(progress, largo, 0);
+
+            // Cerrar todo
+            fileIO.close();
+            socket.close();
+
+            panelEnviar.setVisible(false);
+            //JOptionPane.showMessageDialog(PasarArchivos.panel, "El archivo fue transferido con éxito");
+        }
+        catch (FileNotFoundException e) {
+            System.err.println("Hubo un error al abrir el archivo.");
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(PasarArchivos.panel, "Error al abrir el archivo.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+        catch (IOException ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(PasarArchivos.panel, "Hubo un error de entrada/salida.", "Error de IO", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(PasarArchivos.panel, "Hubo un error general.", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
     
