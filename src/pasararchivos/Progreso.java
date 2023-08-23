@@ -8,7 +8,7 @@ import java.util.ArrayList;
  */
 public class Progreso extends javax.swing.JFrame {
     ArrayList<Long> promedioVelocidad;
-    Transferencia.Modo modo;
+    Modo modo;
 
     /**
      * Creates new form Transfiriendo
@@ -24,11 +24,11 @@ public class Progreso extends javax.swing.JFrame {
         
         // Variables
         promedioVelocidad = new ArrayList(5);
-        modo = Transferencia.Modo.ENVIAR;
+        modo = Modo.ENVIAR;
     }
 
     public void setNombre(String archivo) {
-        if (modo == Transferencia.Modo.ENVIAR) {
+        if (modo == Modo.ENVIAR) {
             setTitle("Transfiriendo...");
             txtNombre.setText("Transfiriendo " + archivo);
         }
@@ -67,7 +67,7 @@ public class Progreso extends javax.swing.JFrame {
         //txtDatos.setText(pasados + " / " + total + " (" + (progreso * 100) + ")");
     }
     
-    public void setModo(Transferencia.Modo modo) {
+    public void setModo(Modo modo) {
         this.modo = modo;
     }
     
@@ -122,6 +122,11 @@ public class Progreso extends javax.swing.JFrame {
             promedioVelocidad.clear();
         }
         super.setVisible(visible);
+    }
+    
+    public static enum Modo {
+        ENVIAR,
+        RECIBIR
     }
     
     /**

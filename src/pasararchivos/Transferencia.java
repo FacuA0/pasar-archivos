@@ -20,10 +20,11 @@ import javax.swing.JOptionPane;
 public class Transferencia extends Thread {
     private static final int PUERTO = 9060;
     private static final String LOCK = "lock";
-    private static Transferencia envio, recepcion;
+    private static Transferencia servidor;
     private static ServerSocket server;
     private static ArrayList<Elementos> pendientes;
     public static Progreso panelEnviar, panelRecibir;
+    Socket socket;
     Modo modo;
     
     public Transferencia(Modo modo) {
@@ -42,11 +43,8 @@ public class Transferencia extends Thread {
         panelEnviar = new Progreso();
         panelRecibir = new Progreso();
         
-        envio = new Transferencia(Modo.ENVIAR);
-        recepcion = new Transferencia(Modo.RECIBIR);
-        
-        envio.start();
-        recepcion.start();
+        servidor = new Transferencia(Modo.ESCUCHAR);
+        servidor.start();
     }
     
     public static void transferir(String[] archivos, String direccion) {
@@ -66,11 +64,42 @@ public class Transferencia extends Thread {
     
     @Override
     public void run() {
-        if (modo == Modo.ENVIAR) {
-            enviar();
+        switch (modo) {
+            case ESCUCHAR:
+                escuchar();
+                break;
+            case ENVIAR:
+                enviar();
+                break;
+            case RECIBIR:
+                recibir();
+                break;
+            default:
+                break;
         }
-        else {
-            recibir();
+    }
+    
+    /**
+     * Código que sirve como servidor que escucha transferencias entrantes.
+     * Cuando llega una nueva transferencia, se crea un nuevo hilo Transferencia
+     * con el modo RECIBIR dedicado a recibir el archivo.
+     */
+    private void escuchar() {
+        while (true) {
+            try {
+                Socket socket = server.accept();
+                
+                Transferencia recibir = new Transferencia(Modo.RECIBIR);
+                recibir.socket = socket;
+                recibir.start();
+            } 
+            catch (IOException ex) {
+                System.err.println("Error en la recepción");
+                ex.printStackTrace();
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
     
@@ -96,7 +125,7 @@ public class Transferencia extends Thread {
                 
                 // Abrir ventana de progreso
                 panelEnviar.setVisible(true);
-                panelEnviar.setModo(Modo.ENVIAR);
+                panelEnviar.setModo(Progreso.Modo.ENVIAR);
                 panelEnviar.setNombre(nombre);
 
                 // Crear conexión
@@ -190,125 +219,97 @@ public class Transferencia extends Thread {
     }
     
     private void recibir() {
-        while (true) {
-            try {
-                Socket socket = server.accept();
-                InputStream stream = socket.getInputStream();
-                
-                // Recibir longitud del nombre de archivo
-                int l = stream.read();
-                
-                if (l == -1) 
-                    throw new Exception("Se cerró la conexión de forma temprana");
-                
-                // Recibir nombre de archivo
-                byte[] nombreBytes = stream.readNBytes(l);
-                
-                if (nombreBytes.length < l) 
-                    throw new Exception("Se cerró la conexión de forma temprana");
-                
-                String nombre = new String(nombreBytes);
-                
-                // Abrir ventana de progreso
-                panelRecibir.setVisible(true);
-                panelRecibir.setModo(Modo.RECIBIR);
-                panelRecibir.setNombre(nombre);
-                
-                // Recibir fecha de modificación
-                byte[] modificadoB = stream.readNBytes(8);
-                long modificado = 0;
-                if (modificadoB[0] >= 0) modificado = modificado | ((long) modificadoB[0] << 56);
-                else modificado = modificado | ((long) (modificadoB[0] + 256) << 56);
-                if (modificadoB[1] >= 0) modificado = modificado | ((long) modificadoB[1] << 48);
-                else modificado = modificado | ((long) (modificadoB[1] + 256) << 48);
-                if (modificadoB[2] >= 0) modificado = modificado | ((long) modificadoB[2] << 40);
-                else modificado = modificado | ((long) (modificadoB[2] + 256) << 40);
-                if (modificadoB[3] >= 0) modificado = modificado | ((long) modificadoB[3] << 32);
-                else modificado = modificado | ((long) (modificadoB[3] + 256) << 32);
-                if (modificadoB[4] >= 0) modificado = modificado | ((long) modificadoB[4] << 24);
-                else modificado = modificado | ((long) (modificadoB[4] + 256) << 24);
-                if (modificadoB[5] >= 0) modificado = modificado | ((long) modificadoB[5] << 16);
-                else modificado = modificado | ((long) (modificadoB[5] + 256) << 16);
-                if (modificadoB[6] >= 0) modificado = modificado | ((long) modificadoB[6] << 8);
-                else modificado = modificado | ((long) (modificadoB[6] + 256) << 8);
-                if (modificadoB[7] >= 0) modificado = modificado | ((long) modificadoB[7]);
-                else modificado = modificado | ((long) (modificadoB[7] + 256));
-                
-                // Determinar el nombre final del archivo considerando duplicados
-                String ruta = System.getProperty("user.home") + "/Desktop/" + nombre;
-                int i = 2;
-                while (new File(ruta).exists()) {
-                    int punto = nombre.lastIndexOf(".");
-                    String sufijo = punto != -1 ? nombre.substring(punto) : "";
-                    String nombre2 = nombre.substring(0, punto);
-                    ruta = System.getProperty("user.home") + "/Desktop/" + nombre2 + " (" + (i++) + ")" + sufijo;
-                }
-                
-                File archivo = new File(ruta);
-                archivo.createNewFile();
-                
-                FileOutputStream fileIO = new FileOutputStream(archivo);
-                
-                // Recibir longitud de archivo
-                byte[] longitud = stream.readNBytes(8);
-                long largo = 0;
-                if (longitud[0] >= 0) largo = largo | ((long) longitud[0] << 56);
-                else largo = largo | ((long) (longitud[0] + 256) << 56);
-                if (longitud[1] >= 0) largo = largo | ((long) longitud[1] << 48);
-                else largo = largo | ((long) (longitud[1] + 256) << 48);
-                if (longitud[2] >= 0) largo = largo | ((long) longitud[2] << 40);
-                else largo = largo | ((long) (longitud[2] + 256) << 40);
-                if (longitud[3] >= 0) largo = largo | ((long) longitud[3] << 32);
-                else largo = largo | ((long) (longitud[3] + 256) << 32);
-                if (longitud[4] >= 0) largo = largo | ((long) longitud[4] << 24);
-                else largo = largo | ((long) (longitud[4] + 256) << 24);
-                if (longitud[5] >= 0) largo = largo | ((long) longitud[5] << 16);
-                else largo = largo | ((long) (longitud[5] + 256) << 16);
-                if (longitud[6] >= 0) largo = largo | ((long) longitud[6] << 8);
-                else largo = largo | ((long) (longitud[6] + 256) << 8);
-                if (longitud[7] >= 0) largo = largo | ((long) longitud[7]);
-                else largo = largo | ((long) (longitud[7] + 256));
-                
-                long progress = 0;
-                boolean fin = false;
-                
-                long time = System.currentTimeMillis();
-                long velocidad = 0;
-                
-                // Empezar a guardar el archivo
-                while (!fin) {
-                    byte[] bytes = stream.readNBytes((int) Math.min(largo - progress, 4096));
-                    progress += bytes.length;
-                    velocidad += bytes.length;
-                    fileIO.write(bytes);
-                    
-                    // Cada cierto tiempo, actualizar la ventana de progreso.
-                    if (System.currentTimeMillis() - time > 16) {
-                        panelRecibir.setDatos(progress, largo, velocidad * 62);
-                        time = System.currentTimeMillis();
-                        velocidad = 0;
-                    }
-                    if (progress >= largo) fin = true;
-                }
-                
-                panelRecibir.setDatos(progress, largo, 0);
-                
-                // Cerrar todo
-                socket.close();
-                fileIO.close();
-                
-                archivo.setLastModified(modificado);
-                
-                panelRecibir.setVisible(false);
-                //JOptionPane.showMessageDialog(PasarArchivos.panel, "La transferencia fue recibida con éxito.");
-            } 
-            catch (IOException ex) {
-                System.err.println("Error en la recepción");
-                ex.printStackTrace();
+        try {
+            InputStream stream = socket.getInputStream();
+
+            // Recibir longitud del nombre de archivo
+            int l = stream.read();
+
+            if (l == -1) 
+                throw new Exception("Se cerró la conexión de forma temprana");
+
+            // Recibir nombre de archivo
+            byte[] nombreBytes = stream.readNBytes(l);
+
+            if (nombreBytes.length < l) 
+                throw new Exception("Se cerró la conexión de forma temprana");
+
+            String nombre = new String(nombreBytes);
+
+            // Abrir ventana de progreso
+            panelRecibir.setVisible(true);
+            panelRecibir.setModo(Progreso.Modo.RECIBIR);
+            panelRecibir.setNombre(nombre);
+
+            // Recibir fecha de modificación
+            byte[] modificadoB = stream.readNBytes(8);
+            long modificado = 0;
+
+            // Es un quilombo convertir de long a byte array y viceversa
+            for (int i = 0; i < modificadoB.length; i++) 
+                modificado = escribirArrayNumero(modificado, modificadoB, i);
+
+            // Determinar el nombre final del archivo considerando duplicados
+            String ruta = System.getProperty("user.home") + "/Desktop/" + nombre;
+            for (int i = 2; new File(ruta).exists(); i++) {
+                int punto = nombre.lastIndexOf(".");
+                String sufijo = punto != -1 ? nombre.substring(punto) : "";
+                String nombre2 = nombre.substring(0, punto);
+                ruta = System.getProperty("user.home") + "/Desktop/" + nombre2 + " (" + i + ")" + sufijo;
             }
-            catch (Exception e) {
-                e.printStackTrace();
+
+            File archivo = new File(ruta);
+            archivo.createNewFile();
+
+            FileOutputStream fileIO = new FileOutputStream(archivo);
+
+            // Recibir longitud de archivo
+            byte[] longitud = stream.readNBytes(8);
+            long largo = 0;
+
+            // Es un quilombo convertir de long a byte array y viceversa
+            for (int i = 0; i < longitud.length; i++) 
+                largo = escribirArrayNumero(largo, longitud, i);
+
+            long progress = 0;
+            boolean fin = false;
+
+            long time = System.currentTimeMillis();
+            long velocidad = 0;
+
+            // Empezar a guardar el archivo
+            while (!fin) {
+                byte[] bytes = stream.readNBytes((int) Math.min(largo - progress, 4096));
+                progress += bytes.length;
+                velocidad += bytes.length;
+                fileIO.write(bytes);
+
+                // Cada cierto tiempo, actualizar la ventana de progreso.
+                if (System.currentTimeMillis() - time > 16) {
+                    panelRecibir.setDatos(progress, largo, velocidad * 62);
+                    time = System.currentTimeMillis();
+                    velocidad = 0;
+                }
+                if (progress >= largo) fin = true;
             }
+
+            panelRecibir.setDatos(progress, largo, 0);
+
+            // Cerrar todo
+            socket.close();
+            fileIO.close();
+
+            archivo.setLastModified(modificado);
+
+            panelRecibir.setVisible(false);
+            //JOptionPane.showMessageDialog(PasarArchivos.panel, "La transferencia fue recibida con éxito.");
+        } 
+        catch (IOException ex) {
+            System.err.println("Error en la recepción");
+            ex.printStackTrace();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
         }
     }
     
@@ -321,9 +322,10 @@ public class Transferencia extends Thread {
             return numero | ((long) (lista[6] + 256) << bits);
     }
     
-    public static enum Modo {
+    private static enum Modo {
         ENVIAR,
-        RECIBIR
+        RECIBIR,
+        ESCUCHAR
     }
     
     public static class Elementos {
