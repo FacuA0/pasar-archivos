@@ -22,7 +22,7 @@ public class Transferencia extends Thread {
     private static Transferencia envio, recepcion;
     private static ServerSocket server;
     private static ArrayList<Elementos> pendientes;
-    public static Transfiriendo panelEnviar, panelRecibir;
+    public static Progreso panelEnviar, panelRecibir;
     Modo modo;
     
     public Transferencia(Modo modo) {
@@ -38,8 +38,8 @@ public class Transferencia extends Thread {
         }
         
         pendientes = new ArrayList();
-        panelEnviar = new Transfiriendo();
-        panelRecibir = new Transfiriendo();
+        panelEnviar = new Progreso();
+        panelRecibir = new Progreso();
         
         envio = new Transferencia(Modo.ENVIAR);
         recepcion = new Transferencia(Modo.RECIBIR);
@@ -63,6 +63,7 @@ public class Transferencia extends Thread {
         }
     }
     
+    @Override
     public void run() {
         if (modo == Modo.ENVIAR) {
             enviar();
