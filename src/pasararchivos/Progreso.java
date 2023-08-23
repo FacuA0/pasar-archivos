@@ -117,6 +117,7 @@ public class Progreso extends javax.swing.JFrame {
     
     @Override
     public void setVisible(boolean visible) {
+        System.out.println("setVisible(" + visible + ")");
         if (visible) {
             setLocationRelativeTo(PasarArchivos.panel);
             promedioVelocidad.clear();

@@ -194,7 +194,6 @@ public class Transferencia extends Thread {
         catch (IOException ex) {
             ex.printStackTrace();
             JOptionPane.showMessageDialog(PasarArchivos.panel, "Hubo un error de entrada/salida.", "Error de IO", JOptionPane.ERROR_MESSAGE);
-            return;
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -274,7 +273,9 @@ public class Transferencia extends Thread {
                     time = System.currentTimeMillis();
                     velocidad = 0;
                 }
-                if (progress >= largo) fin = true;
+                if (progress >= largo) {
+                    fin = true;
+                }
             }
 
             panelRecibir.setDatos(progress, largo, 0);
@@ -284,7 +285,7 @@ public class Transferencia extends Thread {
             fileIO.close();
 
             archivo.setLastModified(modificado);
-
+            
             panelRecibir.setVisible(false);
             //JOptionPane.showMessageDialog(PasarArchivos.panel, "La transferencia fue recibida con éxito.");
         } 
@@ -303,7 +304,7 @@ public class Transferencia extends Thread {
         if (lista[posicion] >= 0) 
             return numero | ((long) lista[posicion] << bits);
         else 
-            return numero | ((long) (lista[6] + 256) << bits);
+            return numero | ((long) (lista[posicion] + 256) << bits);
     }
     
     private static enum Modo {
