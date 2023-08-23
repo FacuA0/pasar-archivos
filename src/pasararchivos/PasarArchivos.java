@@ -9,11 +9,6 @@ import java.awt.TrayIcon;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.net.BindException;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.Socket;
-import java.util.Enumeration;
 import javax.swing.JOptionPane;
 
 /**
@@ -61,69 +56,6 @@ public class PasarArchivos {
         }
         
         crearIconoBandeja();
-        
-        /*
-        
-        try {
-            var redes = NetworkInterface.getNetworkInterfaces();
-            while (redes.hasMoreElements()) {
-                var interfaz = redes.nextElement();
-                System.out.println(interfaz.getName() + " (" + interfaz.getDisplayName() + "):");
-                
-                var salto = false;
-                var ips = interfaz.getInetAddresses();
-                while (ips.hasMoreElements()) {
-                    var ip = ips.nextElement();
-                    System.out.println("|   " + ip.getHostAddress());
-                    salto = true;
-                }
-                
-                if (salto) System.out.println("");
-            }
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
-        
-        
-        DatagramSocket socket;
-        try {
-            socket = new DatagramSocket(9060);
-        } catch (SocketException ex) {
-            System.err.println("No se pudo crear el socket");
-            return;
-        }
-        System.out.println("Probando");
-        try {
-            System.out.println("Probando1");
-            //Socket socket2 = new Socket(InetAddress.getByName("8.8.8.8"), 80);
-            System.out.println("Probando2");
-            //System.out.println(socket2.getLocalAddress());
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-        
-        
-        for (int i = 0; true; i++) {
-            byte[] contenido = new byte[2];
-            contenido[0] = (byte) (i / 256 % 256 - 128);
-            contenido[1] = (byte) (i % 256 - 128);
-            
-            DatagramPacket packet;
-            try {
-                packet = new DatagramPacket(contenido, 2, InetAddress.getByName("255.255.255.255"),  9060);
-                socket.send(packet);
-                socket.receive(packet);
-            } catch (Exception ex) {
-                System.err.println(ex);
-            }
-            
-            try {
-                Thread.sleep(3000);
-            }
-            catch (Exception e) {}
-        }
-*/
     }
     
     private static void crearIconoBandeja() {

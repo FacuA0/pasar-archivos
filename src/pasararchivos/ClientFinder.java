@@ -10,14 +10,13 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
 
 /**
  * @author Facu
  */
 public class ClientFinder extends Thread {
     private static final int PUERTO = 9060;
+    private static final String LOCK = "lock";
     private static ClientFinder emitter, listener;
     private static HashMap<String, Clientes> pares;
     private static String nombre;
@@ -60,7 +59,7 @@ public class ClientFinder extends Thread {
     }
     
     public static HashMap<String, String> getDispositivos() {
-        synchronized (ClientFinder.class) {
+        synchronized (LOCK) {
             HashMap<String, String> dispositivos = new HashMap();
             
             int i = 0;
@@ -112,15 +111,13 @@ public class ClientFinder extends Thread {
             
             // Remover pares viejos no renovados
             long limite = 6000;
-            synchronized (ClientFinder.class) {
-                Iterator it = pares.entrySet().iterator();
-                while (it.hasNext()) {
-                    Map.Entry<String, Clientes> par = (Map.Entry) it.next();
+            synchronized (LOCK) {
+                for (String clave: pares.keySet()) {
                     long ahora = new Date().getTime();
-                    long antes = par.getValue().fechaEmision;
+                    long antes = pares.get(clave).fechaEmision;
 
                     if (ahora - antes > limite) {
-                        pares.remove(par.getKey());
+                        pares.remove(clave);
                     }
                 }
             }
@@ -173,7 +170,7 @@ public class ClientFinder extends Thread {
                 System.arraycopy(datos, 8, nombreB, 0, nombreB.length);
                 String nombre = new String(nombreB);
                 
-                synchronized (ClientFinder.class) {
+                synchronized (LOCK) {
                     Clientes nuevo = new Clientes(nombre, origen, ahora);
                     pares.put(origen.getHostAddress(), nuevo);
                 }

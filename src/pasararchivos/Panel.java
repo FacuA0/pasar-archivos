@@ -1,21 +1,13 @@
 package pasararchivos;
 
-import java.awt.EventQueue;
-import java.awt.Image;
 import java.awt.Toolkit;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
 import javax.swing.DefaultListModel;
 import javax.swing.DropMode;
-import javax.swing.Icon;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
-import javax.swing.event.ListDataEvent;
-import javax.swing.event.ListDataListener;
 
 /**
  * @author Facu
@@ -203,7 +195,6 @@ public class Panel extends javax.swing.JFrame {
         
         if (resultado == JFileChooser.APPROVE_OPTION) {
             File[] archivos = chooser.getSelectedFiles();
-            String[] rutas = new String[archivos.length];
             
             modeloArchivos.clear();
             

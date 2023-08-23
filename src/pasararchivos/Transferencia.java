@@ -19,6 +19,7 @@ import javax.swing.JOptionPane;
  */
 public class Transferencia extends Thread {
     private static final int PUERTO = 9060;
+    private static final String LOCK = "lock";
     private static Transferencia envio, recepcion;
     private static ServerSocket server;
     private static ArrayList<Elementos> pendientes;
@@ -54,7 +55,7 @@ public class Transferencia extends Thread {
             ip = InetAddress.getByName(direccion);
         } catch (UnknownHostException ex) {return;}
         
-        synchronized (Transferencia.class) {            
+        synchronized (LOCK) {            
             for (String ruta : archivos) {
                 File archivo = new File(ruta);
                 Elementos e = new Elementos(ip, archivo);
@@ -85,7 +86,7 @@ public class Transferencia extends Thread {
             }
             
             Elementos item;
-            synchronized (Transferencia.class) {
+            synchronized (LOCK) {
                 item = pendientes.remove(0);
             }
             

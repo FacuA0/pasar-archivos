@@ -1,9 +1,7 @@
 package pasararchivos;
 
-import java.awt.Color;
 import java.awt.Toolkit;
 import java.util.ArrayList;
-import java.util.Locale;
 
 /**
  * @author Facu

@@ -2,7 +2,6 @@ package pasararchivos;
 
 import java.awt.datatransfer.DataFlavor;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
