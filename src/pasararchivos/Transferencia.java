@@ -199,14 +199,14 @@ public class Transferencia extends Thread {
 
                     // Cada cierto tiempo, actualizar la ventana de progreso
                     if (System.currentTimeMillis() - time > 16) {
-                        panelEnviar.setDatos(progress, largo, velocidad * 62);
+                        //panelEnviar.setDatos(progress, largo, velocidad * 62);
                         time = System.currentTimeMillis();
                         velocidad = 0;
                     }
                     if (bytes.length == 0) fin = true;
                 }
 
-                panelEnviar.setDatos(progress, largo, 0);
+                //panelEnviar.setDatos(progress, largo, 0);
 
                 // Cerrar archivo
                 fileIO.close();
@@ -278,7 +278,7 @@ public class Transferencia extends Thread {
                 // Abrir ventana de progreso
                 panelRecibir.setVisible(true);
                 panelRecibir.setModo(Progreso.Modo.RECIBIR);
-                panelRecibir.setNombre(nombre);
+                //panelRecibir.setNombre(nombre);
 
                 // Recibir fecha de modificación
                 byte[] modificadoBytes = stream.readNBytes(8);
@@ -332,7 +332,7 @@ public class Transferencia extends Thread {
 
                     // Cada cierto tiempo, actualizar la ventana de progreso.
                     if (System.currentTimeMillis() - time > 16) {
-                        panelRecibir.setDatos(progreso, longitud, velocidad * 62);
+                        //panelRecibir.setDatos(progreso, longitud, velocidad * 62);
                         time = System.currentTimeMillis();
                         velocidad = 0;
                     }
@@ -340,7 +340,7 @@ public class Transferencia extends Thread {
                     if (progreso >= longitud) fin = true;
                 }
 
-                panelRecibir.setDatos(progreso, longitud, 0);
+                //panelRecibir.setDatos(progreso, longitud, 0);
 
                 // Cerrar archivo
                 fileIO.close();

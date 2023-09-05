@@ -55,6 +55,8 @@ public class PasarArchivos {
             panel.setVisible(true);
         }
         
+        new Progreso().setVisible(true);
+        
         crearIconoBandeja();
     }
     
