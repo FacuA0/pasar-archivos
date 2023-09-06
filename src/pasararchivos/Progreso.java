@@ -23,6 +23,7 @@ public class Progreso extends javax.swing.JFrame {
         setAutoRequestFocus(true);
         setResizable(true);
         setAlwaysOnTop(true);
+        setLocationRelativeTo(null);
         setIconImage(Toolkit.getDefaultToolkit().getImage("src/images/icono.png"));
         
         // Variables
@@ -39,34 +40,34 @@ public class Progreso extends javax.swing.JFrame {
     public int agregarTransferencia(Modo modo, InetAddress direccion) {
         Datos datos = new Datos(modo, direccion);
         
-        if (transferencias.isEmpty()) {
-            setVisible(true);
-        }
-        
         transferencias.add(datos);
         actualizarTitulo();
         actualizarBarras();
+        
+        if (transferencias.size() == 1) {
+            setVisible(true);
+        }
         
         int hash = datos.hashCode();
         return hash;
     }
     
     public void removerTransferencia(int idDatos) {
+        if (transferencias.size() == 1) {
+            setVisible(false);
+        }
+        
         transferencias.remove(getDatos(idDatos));
         actualizarTitulo();
         actualizarBarras();
-        
-        if (transferencias.isEmpty()) {
-            setVisible(false);
-        }
     }
     
     private void actualizarTitulo() {
         int envios = 0, recepciones = 0;
         
         for (Datos d: transferencias) {
-            if (d.modo == Modo.ENVIAR) envios++;
-            else recepciones++;
+            if (d.modo == Modo.ENVIAR) envios += d.cantidadArchivos;
+            else recepciones += d.cantidadArchivos;
         }
         
         String sufijo = (envios + recepciones > 1 ? "archivos..." : "archivo...");
@@ -113,6 +114,8 @@ public class Progreso extends javax.swing.JFrame {
         datos.nombreArchivo = archivo;
         datos.indice = indice;
         datos.cantidadArchivos = cantidad;
+        
+        actualizarTitulo();
         
         datos.panel.setCantidad(indice, cantidad);
         if (datos.modo == Modo.ENVIAR) {
