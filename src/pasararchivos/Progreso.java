@@ -38,18 +38,30 @@ public class Progreso extends javax.swing.JFrame {
     
     public int agregarTransferencia(Modo modo, InetAddress direccion) {
         Datos datos = new Datos(modo, direccion);
+        
+        if (transferencias.isEmpty()) {
+            setVisible(true);
+        }
+        
         transferencias.add(datos);
-        int hash = datos.hashCode();
+        actualizarTitulo();
         actualizarBarras();
+        
+        int hash = datos.hashCode();
         return hash;
     }
     
     public void removerTransferencia(int idDatos) {
         transferencias.remove(getDatos(idDatos));
+        actualizarTitulo();
         actualizarBarras();
+        
+        if (transferencias.isEmpty()) {
+            setVisible(false);
+        }
     }
     
-    private void refrescarTitulo() {
+    private void actualizarTitulo() {
         int envios = 0, recepciones = 0;
         
         for (Datos d: transferencias) {
@@ -102,8 +114,13 @@ public class Progreso extends javax.swing.JFrame {
         datos.indice = indice;
         datos.cantidadArchivos = cantidad;
         
-        datos.panel.setNombreArchivo(archivo);
         datos.panel.setCantidad(indice, cantidad);
+        if (datos.modo == Modo.ENVIAR) {
+            datos.panel.setNombreArchivo("Transfiriendo " + archivo);
+        }
+        else {
+            datos.panel.setNombreArchivo("Recibiendo " + archivo);
+        }
     }
     
     public void setDatos(int idDatos, long pasados, long total, long velocidad) {

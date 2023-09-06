@@ -25,8 +25,8 @@ public class PanelProgreso extends javax.swing.JPanel {
         barraProgreso.setValue(valor);
     }
     
-    public void setNombreArchivo(String nombre) {
-        txtNombre.setText("Transfiriendo " + nombre);
+    public void setNombreArchivo(String texto) {
+        txtNombre.setText(texto);
     }
     
     public void setCantidad(int indice, int total) {

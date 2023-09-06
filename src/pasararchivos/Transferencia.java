@@ -22,7 +22,7 @@ public class Transferencia extends Thread {
     private static final String LOCK = "lock";
     private static Transferencia servidor;
     private static ServerSocket server;
-    public static Progreso panelEnviar, panelRecibir;
+    public static Progreso panelProgreso;
     Elementos item; // Sólo modo ENVIAR
     Socket socket; // Sólo modo RECIBIR
     Modo modo;
@@ -114,6 +114,7 @@ public class Transferencia extends Thread {
         }
         
         // Abrir barra en la ventana de progreso
+        int idPanel = panelProgreso.agregarTransferencia(Progreso.Modo.ENVIAR, item.ip);
         
         // Empezar a enviar datos
         try {
@@ -129,6 +130,8 @@ public class Transferencia extends Thread {
                 File archivo = item.archivos[i];
 
                 String nombre = archivo.getName();
+                
+                panelProgreso.setNombreArchivo(idPanel, nombre, i + 1, item.archivos.length);
                 
                 FileInputStream fileIO;
                 try {
@@ -199,14 +202,14 @@ public class Transferencia extends Thread {
 
                     // Cada cierto tiempo, actualizar la ventana de progreso
                     if (System.currentTimeMillis() - time > 16) {
-                        //panelEnviar.setDatos(progress, largo, velocidad * 62);
+                        panelProgreso.setDatos(idPanel, progress, largo, velocidad * 62);
                         time = System.currentTimeMillis();
                         velocidad = 0;
                     }
                     if (bytes.length == 0) fin = true;
                 }
 
-                //panelEnviar.setDatos(progress, largo, 0);
+                panelProgreso.setDatos(idPanel, progress, largo, 0);
 
                 // Cerrar archivo
                 fileIO.close();
@@ -220,6 +223,8 @@ public class Transferencia extends Thread {
             e.printStackTrace();
             JOptionPane.showMessageDialog(PasarArchivos.panel, "Hubo un error general durante la transferencia: " + e.toString(), "Error general", JOptionPane.ERROR_MESSAGE);
         }
+        
+        panelProgreso.removerTransferencia(idPanel);
         
         // Cerrar socket
         try {
@@ -240,6 +245,9 @@ public class Transferencia extends Thread {
             JOptionPane.showMessageDialog(PasarArchivos.panel, "Hubo un error de entrada/salida al obtener el flujo de datos del socket.", "Error de I/O", JOptionPane.ERROR_MESSAGE);
             return;
         }
+        
+        // Agregar transferencia a la ventana de progreso
+        int idPanel = panelProgreso.agregarTransferencia(Progreso.Modo.RECIBIR, socket.getInetAddress());
         
         try {
             // Recibir cantidad de archivos a transferir
@@ -275,10 +283,8 @@ public class Transferencia extends Thread {
 
                 String nombre = new String(nombreBytes);
 
-                // Abrir ventana de progreso
-                panelRecibir.setVisible(true);
-                panelRecibir.setModo(Progreso.Modo.RECIBIR);
-                //panelRecibir.setNombre(nombre);
+                // Cambiar nombre en la ventana de progreso
+                panelProgreso.setNombreArchivo(idPanel, nombre, ind + 1, cantidad);
 
                 // Recibir fecha de modificación
                 byte[] modificadoBytes = stream.readNBytes(8);
@@ -332,7 +338,7 @@ public class Transferencia extends Thread {
 
                     // Cada cierto tiempo, actualizar la ventana de progreso.
                     if (System.currentTimeMillis() - time > 16) {
-                        //panelRecibir.setDatos(progreso, longitud, velocidad * 62);
+                        panelProgreso.setDatos(idPanel, progreso, longitud, velocidad * 62);
                         time = System.currentTimeMillis();
                         velocidad = 0;
                     }
@@ -340,7 +346,7 @@ public class Transferencia extends Thread {
                     if (progreso >= longitud) fin = true;
                 }
 
-                //panelRecibir.setDatos(progreso, longitud, 0);
+                panelProgreso.setDatos(idPanel, progreso, longitud, 0);
 
                 // Cerrar archivo
                 fileIO.close();
@@ -356,7 +362,7 @@ public class Transferencia extends Thread {
             e.printStackTrace();
         }
         
-        panelRecibir.setVisible(false);
+        panelProgreso.removerTransferencia(idPanel);
         
         try {
             socket.close();
