@@ -16,6 +16,29 @@ public class PanelProgreso extends javax.swing.JPanel {
     public PanelProgreso() {
         initComponents();
     }
+    
+    public void setMaximoBarra(int maximo) {
+        barraProgreso.setMaximum(maximo);
+    }
+    
+    public void setValorBarra(int valor) {
+        barraProgreso.setValue(valor);
+    }
+    
+    public void setNombreArchivo(String nombre) {
+        txtNombre.setText("Transfiriendo " + nombre);
+    }
+    
+    public void setCantidad(int indice, int total) {
+        txtCantidad.setText(indice + "/" + total);
+        
+        // El texto será visible si se transfiere más de un archivo.
+        txtCantidad.setVisible(total > 1);
+    }
+    
+    public void setDatos(String porcentaje, String pasados, String total, String velocidad) {
+        txtDatos.setText(porcentaje + " (" + pasados + " / " + total + ") - " + velocidad);
+    }
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -31,14 +54,13 @@ public class PanelProgreso extends javax.swing.JPanel {
         barraProgreso = new javax.swing.JProgressBar();
         txtDatos = new javax.swing.JLabel();
 
-        setBackground(new java.awt.Color(255, 255, 255));
         setMaximumSize(new java.awt.Dimension(32767, 80));
 
-        txtNombre.setText("Transfiriendo Archivo.txt");
+        txtNombre.setText("Esperando...");
 
-        txtCantidad.setText("1/2");
+        txtCantidad.setText("0/0");
 
-        txtDatos.setText("0% (0 MB / 10,0 MB) - 1,0 MB/s");
+        txtDatos.setText("0% (0 MB / 0,0 MB) - 0,0 MB/s");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -53,14 +75,14 @@ public class PanelProgreso extends javax.swing.JPanel {
                         .addComponent(txtCantidad))
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(txtDatos)
-                        .addGap(0, 212, Short.MAX_VALUE))
+                        .addGap(0, 230, Short.MAX_VALUE))
                     .addComponent(barraProgreso, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
+                .addGap(12, 12, 12)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(txtNombre)
                     .addComponent(txtCantidad))
@@ -68,7 +90,7 @@ public class PanelProgreso extends javax.swing.JPanel {
                 .addComponent(barraProgreso, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(txtDatos)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap(12, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 

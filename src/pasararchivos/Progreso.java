@@ -3,7 +3,7 @@ package pasararchivos;
 import java.awt.Toolkit;
 import java.net.InetAddress;
 import java.util.ArrayList;
-import javax.swing.GroupLayout;
+import javax.swing.BoxLayout;
 import javax.swing.JSeparator;
 
 /**
@@ -11,7 +11,7 @@ import javax.swing.JSeparator;
  */
 public class Progreso extends javax.swing.JFrame {
     public ArrayList<Datos> transferencias;
-    private GroupLayout group;
+    private BoxLayout layout;
 
     /**
      * Creates new form Transfiriendo
@@ -28,110 +28,107 @@ public class Progreso extends javax.swing.JFrame {
         // Variables
         transferencias = new ArrayList();
         
-        group = new GroupLayout(panel);
-        panel.setLayout(group);
+        layout = new BoxLayout(panel, BoxLayout.Y_AXIS);
+        panel.setLayout(layout);
+        
+        getContentPane().setLayout(new BoxLayout(getContentPane(), BoxLayout.Y_AXIS));
+        
+        actualizarBarras();
     }
     
-    public Datos agregarTransferencia(Modo modo, InetAddress direccion) {
+    public int agregarTransferencia(Modo modo, InetAddress direccion) {
         Datos datos = new Datos(modo, direccion);
         transferencias.add(datos);
-        return datos;
+        int hash = datos.hashCode();
+        actualizarBarras();
+        return hash;
     }
     
-    public void removerTransferencia(Datos datos) {
-        transferencias.remove(datos);
+    public void removerTransferencia(int idDatos) {
+        transferencias.remove(getDatos(idDatos));
+        actualizarBarras();
     }
     
-    public void insertarBarras() {
-        panel.removeAll();
+    private void refrescarTitulo() {
+        int envios = 0, recepciones = 0;
         
-        if (transferencias.size() == 0) {
-            group.setHorizontalGroup(
-                    group.createSequentialGroup()
-                        .addContainerGap()
-                        .addGroup(group.createParallelGroup())
-                        .addContainerGap()
-            );
-            group.setVerticalGroup(group.createSequentialGroup());
-            return;
+        for (Datos d: transferencias) {
+            if (d.modo == Modo.ENVIAR) envios++;
+            else recepciones++;
         }
         
-        JSeparator[] separadores = new JSeparator[transferencias.size() - 1];
+        String sufijo = (envios + recepciones > 1 ? "archivos..." : "archivo...");
+        
+        if (envios > 0 && recepciones == 0) {
+            setTitle("Transfiriendo " + sufijo);
+        }
+        else if (envios == 0 && recepciones > 0) {
+            setTitle("Recibiendo " + sufijo);
+        }
+        else if (envios > 0 && recepciones > 0) {
+            setTitle("Transfiriendo y recibiendo " + sufijo);
+        }
+        else {
+            setTitle("Barra de progreso");
+        }
+    }
+    
+    public void actualizarBarras() {
+        panel.removeAll();
         
         for (int i = 0; i < transferencias.size(); i++) {
-            if (i < 0) {
-                separadores[i - 1] = new JSeparator();
-                panel.add(separadores[i]);
+            if (i > 0) {
+                panel.add(new JSeparator());
             }
-            
             panel.add(transferencias.get(i).panel);
         }
         
-        GroupLayout.ParallelGroup h = group.createParallelGroup();
-        GroupLayout.SequentialGroup v = group.createSequentialGroup();
-        
-        v.addContainerGap();
-        for (int i = 0; i < transferencias.size(); i++) {
-            if (i < 0) {
-                h.addComponent(separadores[i]);
-                
-                v.addGap(6);
-                v.addComponent(separadores[i]);
-                v.addGap(6);
-            }
-            h.addComponent(transferencias.get(i).panel);
-            v.addComponent(transferencias.get(i).panel);
-        }
-        v.addContainerGap();
-        
-        group.setHorizontalGroup(
-                group.createSequentialGroup()
-                    .addContainerGap()
-                    .addGroup(h)
-                    .addContainerGap()
-        );
-        group.setVerticalGroup(v);
-        
-        int margenes = 12;
-        int margenesSep = 12;
+        int margenes = 0;
+        int margenesSep = 0;
         int alturaBarra = 80;
+        int cantidad = transferencias.size();
         
-        int altura = margenes + (margenesSep + 2) * separadores.length + alturaBarra * transferencias.size();
-        int alturaVentanaMax = margenes + (margenesSep + 2) * 3 + alturaBarra * 4;
+        int altura = margenes + (margenesSep + 2) * (cantidad - 1) + alturaBarra * cantidad;
         
-        panel.setSize(380, altura);
-        setSize(400, Math.min(altura, alturaVentanaMax));
-    }
-/*
-    public void setNombre(String archivo) {
-        if (modo == Modo.ENVIAR) {
-            setTitle("Transfiriendo...");
-            txtNombre.setText("Transfiriendo " + archivo);
-        }
-        else {
-            setTitle("Recibiendo...");
-            txtNombre.setText("Recibiendo " + archivo);
+        pack();
+        if (getHeight() > 600) {
+            setSize(getWidth(), 600);
         }
     }
     
-    public void setDatos(long pasados, long total, long velocidad) {
+    public void setNombreArchivo(int idDatos, String archivo, int indice, int cantidad) {
+        Datos datos = getDatos(idDatos);
+        datos.nombreArchivo = archivo;
+        datos.indice = indice;
+        datos.cantidadArchivos = cantidad;
+        
+        datos.panel.setNombreArchivo(archivo);
+        datos.panel.setCantidad(indice, cantidad);
+    }
+    
+    public void setDatos(int idDatos, long pasados, long total, long velocidad) {
+        Datos d = getDatos(idDatos);
+        d.progreso = pasados;
+        d.largoArchivo = total;
+        d.velocidad = velocidad;
+        
         double progreso = (double) pasados / (double) total;
         
-        barraProgreso.setMaximum(1000);
-        barraProgreso.setValue((int) (progreso * 1000));
+        d.panel.setMaximoBarra(1000);
+        d.panel.setValorBarra((int) (progreso * 1000));
         
-        if (promedioVelocidad.size() >= 5) {
-            promedioVelocidad.remove(0);
+        if (d.velocidadesPromedio.size() >= 5) {
+            d.velocidadesPromedio.remove(0);
         }
-        promedioVelocidad.add(velocidad);
+        d.velocidadesPromedio.add(velocidad);
         
         // Si nos envían velocidad 0, tiene que ser 0. Si no, mostrar promedio.
         if (velocidad > 0) {
             velocidad = 0;
-            for (long v: promedioVelocidad) {
+            for (long v: d.velocidadesPromedio) {
                 velocidad += v;
             }
-            velocidad /= promedioVelocidad.size();
+            velocidad /= d.velocidadesPromedio.size();
         }
         
         String porcentaje = Math.floor(progreso * 1000) / 10 + "%";
@@ -139,12 +136,22 @@ public class Progreso extends javax.swing.JFrame {
         String mbTotales = getMedida(total);
         String mbps = getMedida(velocidad) + "/s";
         
-        txtDatos.setText(porcentaje + " (" + mbPasados + " / " + mbTotales + ") - " + mbps);
+        d.panel.setDatos(porcentaje, mbPasados, mbTotales, mbps);
         //txtDatos.setText(pasados + " / " + total + " (" + (progreso * 100) + ")");
     }
-    */
+    
     public void setModo(Modo modo) {
         //this.modo = modo;
+    }
+    
+    private Datos getDatos(int idDatos) {
+        for (Datos d: transferencias) {
+            if (d.hashCode() == idDatos) {
+                return d;
+            }
+        }
+        
+        return null;
     }
     
     public String getMedida(long bytes) {
@@ -217,6 +224,7 @@ public class Progreso extends javax.swing.JFrame {
             this.velocidadesPromedio = new ArrayList();
             this.direccion = direccion;
             this.nombreHost = "";
+            
             this.panel = new PanelProgreso();
         }
     }
@@ -231,38 +239,50 @@ public class Progreso extends javax.swing.JFrame {
     private void initComponents() {
 
         paneles = new javax.swing.JScrollPane();
+        panelMedio = new javax.swing.JPanel();
         panel = new javax.swing.JPanel();
 
         setTitle("Transfiriendo...");
-        setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
 
         paneles.setBorder(null);
         paneles.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-
-        panel.setPreferredSize(new java.awt.Dimension(380, 278));
 
         javax.swing.GroupLayout panelLayout = new javax.swing.GroupLayout(panel);
         panel.setLayout(panelLayout);
         panelLayout.setHorizontalGroup(
             panelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 390, Short.MAX_VALUE)
+            .addGap(0, 388, Short.MAX_VALUE)
         );
         panelLayout.setVerticalGroup(
             panelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 278, Short.MAX_VALUE)
+            .addGap(0, 92, Short.MAX_VALUE)
         );
 
-        paneles.setViewportView(panel);
+        javax.swing.GroupLayout panelMedioLayout = new javax.swing.GroupLayout(panelMedio);
+        panelMedio.setLayout(panelMedioLayout);
+        panelMedioLayout.setHorizontalGroup(
+            panelMedioLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(panelMedioLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(panel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap())
+        );
+        panelMedioLayout.setVerticalGroup(
+            panelMedioLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(panel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+        );
+
+        paneles.setViewportView(panelMedio);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(paneles, javax.swing.GroupLayout.DEFAULT_SIZE, 400, Short.MAX_VALUE)
+            .addComponent(paneles)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(paneles, javax.swing.GroupLayout.DEFAULT_SIZE, 92, Short.MAX_VALUE)
+            .addComponent(paneles)
         );
 
         pack();
@@ -270,6 +290,7 @@ public class Progreso extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel panel;
+    private javax.swing.JPanel panelMedio;
     private javax.swing.JScrollPane paneles;
     // End of variables declaration//GEN-END:variables
 }

@@ -39,8 +39,8 @@ public class Transferencia extends Thread {
             throw new RuntimeException(e);
         }
         
-        panelEnviar = new Progreso();
-        panelRecibir = new Progreso();
+        //panelEnviar = new Progreso();
+        //panelRecibir = new Progreso();
         
         servidor = new Transferencia(Modo.ESCUCHAR);
         servidor.start();
