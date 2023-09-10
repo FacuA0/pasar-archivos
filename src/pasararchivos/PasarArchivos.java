@@ -66,16 +66,24 @@ public class PasarArchivos {
         icono.addMouseListener(new MouseListener() {
             @Override 
             public void mouseClicked(MouseEvent e) {
-                panel.setLocation(e.getX() - panel.getWidth(), e.getY() - panel.getHeight());
-                panel.setVisible(true);
                 
-                int estado = panel.getExtendedState();
-                if ((estado & Frame.ICONIFIED) == Frame.ICONIFIED) {
-                    panel.setExtendedState(estado - Frame.ICONIFIED);
+                System.out.println("Icono 1: isVisible(" + panel.isVisible() + ")");
+                if (panel.isVisible()) {
+                    int estado = panel.getExtendedState();
+                    if ((estado & Frame.ICONIFIED) == Frame.ICONIFIED) {
+                        panel.setExtendedState(estado - Frame.ICONIFIED);
+                    }
+                    else {
+                        panel.setVisible(false);
+                    }
                 }
                 else {
-                    panel.setExtendedState(estado | Frame.ICONIFIED);
+                    panel.setLocation(e.getX() - panel.getWidth(), e.getY() - panel.getHeight());
+                    panel.setVisible(true);
                 }
+                
+                
+                System.out.println("Icono 2: isVisible(" + panel.isVisible() + ")");
             }
             
             @Override public void mouseEntered(MouseEvent e) {}

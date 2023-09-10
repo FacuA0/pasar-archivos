@@ -1,6 +1,7 @@
 package pasararchivos;
 
 import java.awt.Toolkit;
+import java.awt.event.WindowEvent;
 import java.io.File;
 import java.util.HashMap;
 import javax.swing.DefaultListModel;
@@ -93,12 +94,7 @@ public class Panel extends javax.swing.JFrame {
         chooser.setDialogTitle("Elegir archivos");
         chooser.setFileFilter(null);
 
-        setTitle("Pasar Archivos");
-        addWindowListener(new java.awt.event.WindowAdapter() {
-            public void windowClosing(java.awt.event.WindowEvent evt) {
-                formWindowClosing(evt);
-            }
-        });
+        setTitle("Pasar Archivos 1.1");
 
         texto.setText("Hola usuario");
 
@@ -205,10 +201,6 @@ public class Panel extends javax.swing.JFrame {
             habilitarBoton();
         }
     }//GEN-LAST:event_seleccionarActionPerformed
-
-    private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
-        setVisible(false);
-    }//GEN-LAST:event_formWindowClosing
 
     private void btnTransferirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnTransferirActionPerformed
        JOptionPane.showMessageDialog(this, "Iniciando transferencia");
