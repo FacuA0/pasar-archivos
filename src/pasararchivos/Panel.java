@@ -203,7 +203,12 @@ public class Panel extends javax.swing.JFrame {
     }//GEN-LAST:event_seleccionarActionPerformed
 
     private void btnTransferirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnTransferirActionPerformed
-       JOptionPane.showMessageDialog(this, "Iniciando transferencia");
+        int res = JOptionPane.showConfirmDialog(this, "Iniciar transferencia", "La transferencia está por iniciar.", JOptionPane.OK_CANCEL_OPTION);
+        
+        // Cancelar la transferencia
+        if (res != JOptionPane.OK_OPTION) {
+            return;
+        }
         
         String[] archivos = new String[modeloArchivos.size()];
         for (int i = 0; i < archivos.length; i++) {

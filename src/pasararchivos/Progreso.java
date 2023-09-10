@@ -21,7 +21,7 @@ public class Progreso extends javax.swing.JFrame {
         
         // Ventana
         setAutoRequestFocus(true);
-        setResizable(true);
+        setResizable(false);
         setAlwaysOnTop(true);
         setLocationRelativeTo(null);
         setIconImage(Toolkit.getDefaultToolkit().getImage("src/images/icono.png"));
@@ -46,6 +46,7 @@ public class Progreso extends javax.swing.JFrame {
         
         if (transferencias.size() == 1) {
             setVisible(true);
+            toFront();
         }
         
         int hash = datos.hashCode();

@@ -10,6 +10,7 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author Facu
@@ -18,7 +19,7 @@ public class ClientFinder extends Thread {
     private static final int PUERTO = 9060;
     private static final String LOCK = "lock";
     private static ClientFinder emitter, listener;
-    private static HashMap<String, Clientes> pares;
+    private static ConcurrentHashMap<String, Clientes> pares;
     private static String nombre;
     private static DatagramSocket socket;
     private static InetAddress direccionLocal;
@@ -46,7 +47,7 @@ public class ClientFinder extends Thread {
         listener = new ClientFinder(Mode.RECEIVER);
         emitter = new ClientFinder(Mode.EMITTER);
             
-        pares = new HashMap();
+        pares = new ConcurrentHashMap();
         try {
             nombre = InetAddress.getLocalHost().getHostName();
         }
