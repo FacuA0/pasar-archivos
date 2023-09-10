@@ -53,13 +53,16 @@ public class Progreso extends javax.swing.JFrame {
     }
     
     public void removerTransferencia(int idDatos) {
-        if (transferencias.size() == 1) {
+        transferencias.remove(getDatos(idDatos));
+        
+        if (transferencias.isEmpty()) {
             setVisible(false);
         }
+        else {
+            actualizarBarras();
+        }
         
-        transferencias.remove(getDatos(idDatos));
         actualizarTitulo();
-        actualizarBarras();
     }
     
     private void actualizarTitulo() {
@@ -271,7 +274,7 @@ public class Progreso extends javax.swing.JFrame {
         panel.setLayout(panelLayout);
         panelLayout.setHorizontalGroup(
             panelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 388, Short.MAX_VALUE)
+            .addGap(0, 375, Short.MAX_VALUE)
         );
         panelLayout.setVerticalGroup(
             panelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -283,9 +286,9 @@ public class Progreso extends javax.swing.JFrame {
         panelMedioLayout.setHorizontalGroup(
             panelMedioLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(panelMedioLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(panel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addContainerGap())
+                .addGap(12, 12, 12)
+                .addComponent(panel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(12, 12, 12))
         );
         panelMedioLayout.setVerticalGroup(
             panelMedioLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)

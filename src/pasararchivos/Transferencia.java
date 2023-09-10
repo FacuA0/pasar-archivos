@@ -12,6 +12,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Date;
 import javax.swing.JOptionPane;
 
 /**
@@ -188,7 +189,7 @@ public class Transferencia extends Thread {
 
                 long time = System.currentTimeMillis();
 
-                long progress = 0;
+                long progreso = 0;
                 long velocidad = 0;
                 boolean fin = false;
 
@@ -196,19 +197,19 @@ public class Transferencia extends Thread {
                 while (!fin) {
                     byte[] bytes = fileIO.readNBytes(4096);
                     stream.write(bytes);
-                    progress += bytes.length;
+                    progreso += bytes.length;
                     velocidad += bytes.length;
 
                     // Cada cierto tiempo, actualizar la ventana de progreso
                     if (System.currentTimeMillis() - time > 16) {
-                        panelProgreso.setDatos(idPanel, progress, largo, velocidad * 62);
+                        panelProgreso.setDatos(idPanel, progreso, largo, velocidad * 62);
                         time = System.currentTimeMillis();
                         velocidad = 0;
                     }
                     if (bytes.length == 0) fin = true;
                 }
 
-                panelProgreso.setDatos(idPanel, progress, largo, 0);
+                panelProgreso.setDatos(idPanel, progreso, largo, 0);
 
                 // Cerrar archivo
                 fileIO.close();
