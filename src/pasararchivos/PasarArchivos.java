@@ -62,12 +62,11 @@ public class PasarArchivos {
         System.out.println("Creando el ícono de bandeja");
         Image image = Toolkit.getDefaultToolkit().createImage("src/images/icono.png");
         TrayIcon icono = new TrayIcon(image, "Pasar archivos");
+        icono.setImageAutoSize(true);
         
         icono.addMouseListener(new MouseListener() {
             @Override 
             public void mouseClicked(MouseEvent e) {
-                
-                System.out.println("Icono 1: isVisible(" + panel.isVisible() + ")");
                 if (panel.isVisible()) {
                     int estado = panel.getExtendedState();
                     if ((estado & Frame.ICONIFIED) == Frame.ICONIFIED) {
@@ -81,9 +80,6 @@ public class PasarArchivos {
                     panel.setLocation(e.getX() - panel.getWidth(), e.getY() - panel.getHeight());
                     panel.setVisible(true);
                 }
-                
-                
-                System.out.println("Icono 2: isVisible(" + panel.isVisible() + ")");
             }
             
             @Override public void mouseEntered(MouseEvent e) {}
