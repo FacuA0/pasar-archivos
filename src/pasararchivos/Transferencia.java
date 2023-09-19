@@ -28,7 +28,7 @@ public class Transferencia extends Thread {
     Socket socket; // Sólo modo RECIBIR
     Modo modo;
     
-    public Transferencia(Modo modo) {
+    private Transferencia(Modo modo) {
         this.modo = modo;
     }
     
@@ -192,7 +192,7 @@ public class Transferencia extends Thread {
                 long progreso = 0;
                 long velocidad = 0;
                 boolean fin = false;
-
+                
                 // Enviar el contenido del archivo
                 while (!fin) {
                     byte[] bytes = fileIO.readNBytes(4096);

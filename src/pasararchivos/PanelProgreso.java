@@ -56,7 +56,6 @@ public class PanelProgreso extends javax.swing.JPanel {
         barraProgreso = new javax.swing.JProgressBar();
         txtDatos = new javax.swing.JLabel();
 
-        setAlignmentX(0.5F);
         setMaximumSize(new java.awt.Dimension(32767, 80));
 
         jPanel1.setMaximumSize(new java.awt.Dimension(16, 16));

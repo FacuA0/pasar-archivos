@@ -1,5 +1,6 @@
 package pasararchivos;
 
+import com.formdev.flatlaf.*;
 import java.awt.Toolkit;
 import java.awt.event.WindowEvent;
 import java.io.File;
@@ -9,13 +10,15 @@ import javax.swing.DropMode;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.plaf.nimbus.NimbusLookAndFeel;
 
 /**
  * @author Facu
  */
 public class Panel extends javax.swing.JFrame {
 
-    DefaultListModel modeloArchivos, modeloDispositivos;
+    DefaultListModel<String> modeloArchivos, modeloDispositivos;
     HashMap<String, String> dispositivos;
     
     /**
@@ -42,7 +45,7 @@ public class Panel extends javax.swing.JFrame {
         
         chooser.setMultiSelectionEnabled(true);
         
-        dispositivos = new HashMap();
+        dispositivos = new HashMap<String, String>();
     }
     
     public void actualizarLista() {
@@ -203,7 +206,7 @@ public class Panel extends javax.swing.JFrame {
     }//GEN-LAST:event_seleccionarActionPerformed
 
     private void btnTransferirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnTransferirActionPerformed
-        int res = JOptionPane.showConfirmDialog(this, "Iniciar transferencia", "La transferencia está por iniciar.", JOptionPane.OK_CANCEL_OPTION);
+        int res = JOptionPane.showConfirmDialog(this, "La transferencia está por iniciar.", "Iniciando transferencia", JOptionPane.OK_CANCEL_OPTION);
         
         // Cancelar la transferencia
         if (res != JOptionPane.OK_OPTION) {
@@ -237,15 +240,23 @@ public class Panel extends javax.swing.JFrame {
          * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
          */
         try {
-            for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
-                if (info.getName().equals("Nimbus")) {
-                    UIManager.setLookAndFeel(info.getClassName());
-                    break;
+            UIManager.setLookAndFeel(new FlatLightLaf());
+        }
+        catch (UnsupportedLookAndFeelException e) {
+            System.err.println("Error al establecer el tema FlatLaf Light. Intentando cambiar a Nimbus.");
+            try {
+                for (UIManager.LookAndFeelInfo info: UIManager.getInstalledLookAndFeels()) {
+                    if (info.getName().equals("Nimbus")) {
+                        UIManager.setLookAndFeel(info.getClassName());
+                        break;
+                    }
                 }
+                System.err.println("No se encontró el tema Nimbus. Usando tema por defecto.");
             }
-        } catch (ClassNotFoundException | InstantiationException | 
-                IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(Panel.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            catch (ClassNotFoundException | InstantiationException | 
+                    IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex) {
+                java.util.logging.Logger.getLogger(Panel.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            }
         }
         //</editor-fold>
         
