@@ -9,6 +9,7 @@ import java.awt.TrayIcon;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.net.BindException;
+import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 
 /**
@@ -35,7 +36,8 @@ public class PasarArchivos {
         }
         catch (RuntimeException e) {
             if (e.getCause() instanceof BindException) {
-                JOptionPane.showMessageDialog(null, "Hubo un error al iniciar la funcionalidad de descubrir otros dispositivos. Probablemente hay otra instancia de la aplicación ejecutándose en segundo plano..", "Error de inicio", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(null, "Hubo un error al iniciar la funcionalidad de descubrir otros dispositivos. Probablemente haya otra instancia de la aplicación abierta en segundo plano.", "Error de inicio", JOptionPane.ERROR_MESSAGE);
+                Logger.getLogger("hola");
             }
             else {
                 e.printStackTrace();

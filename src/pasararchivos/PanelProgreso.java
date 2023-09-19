@@ -69,7 +69,6 @@ public class PanelProgreso extends javax.swing.JPanel {
         txtCantidad.setText("0/0");
         jPanel1.add(txtCantidad);
 
-        barraProgreso.setValue(50);
         barraProgreso.setMaximumSize(new java.awt.Dimension(32767, 24));
         barraProgreso.setPreferredSize(new java.awt.Dimension(146, 24));
 

@@ -85,14 +85,14 @@ public class Panel extends javax.swing.JFrame {
 
         chooser = new javax.swing.JFileChooser();
         texto = new javax.swing.JLabel();
+        btnSeleccionar = new javax.swing.JButton();
         scrollArchivos = new javax.swing.JScrollPane();
         listaArchivos = new javax.swing.JList<>();
-        salir = new javax.swing.JButton();
-        seleccionar = new javax.swing.JButton();
         labelDispositivos = new javax.swing.JLabel();
         scrollDispositivos = new javax.swing.JScrollPane();
         listaDispositivos = new javax.swing.JList<>();
         btnTransferir = new javax.swing.JButton();
+        salir = new javax.swing.JButton();
 
         chooser.setDialogTitle("Elegir archivos");
         chooser.setFileFilter(null);
@@ -101,26 +101,19 @@ public class Panel extends javax.swing.JFrame {
 
         texto.setText("Hola usuario");
 
+        btnSeleccionar.setText("Seleccionar archivo");
+        btnSeleccionar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnSeleccionarActionPerformed(evt);
+            }
+        });
+
         listaArchivos.setModel(new javax.swing.AbstractListModel<String>() {
             String[] strings = { "Seleccionar archivo" };
             public int getSize() { return strings.length; }
             public String getElementAt(int i) { return strings[i]; }
         });
         scrollArchivos.setViewportView(listaArchivos);
-
-        salir.setText("Salir");
-        salir.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                salirActionPerformed(evt);
-            }
-        });
-
-        seleccionar.setText("Seleccionar archivo");
-        seleccionar.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                seleccionarActionPerformed(evt);
-            }
-        });
 
         labelDispositivos.setText("Dispositivos disponibles");
 
@@ -140,46 +133,57 @@ public class Panel extends javax.swing.JFrame {
             }
         });
 
+        salir.setText("Salir");
+        salir.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                salirActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
+                .addGap(12, 12, 12)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(scrollDispositivos, javax.swing.GroupLayout.DEFAULT_SIZE, 388, Short.MAX_VALUE)
-                    .addComponent(scrollArchivos)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(btnTransferir)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(salir))
                     .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(texto)
-                            .addComponent(seleccionar)
-                            .addComponent(labelDispositivos))
-                        .addGap(0, 0, Short.MAX_VALUE)))
-                .addContainerGap())
+                        .addComponent(labelDispositivos)
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(0, 0, Short.MAX_VALUE)
+                                .addComponent(btnTransferir)
+                                .addGap(8, 8, 8)
+                                .addComponent(salir))
+                            .addComponent(scrollDispositivos, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 376, Short.MAX_VALUE)
+                            .addComponent(scrollArchivos, javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(btnSeleccionar)
+                                    .addComponent(texto))
+                                .addGap(0, 0, Short.MAX_VALUE)))
+                        .addGap(12, 12, 12))))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
+                .addGap(8, 8, 8)
                 .addComponent(texto)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(seleccionar)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(scrollArchivos, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnSeleccionar)
+                .addGap(8, 8, 8)
+                .addComponent(scrollArchivos, javax.swing.GroupLayout.PREFERRED_SIZE, 117, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(8, 8, 8)
                 .addComponent(labelDispositivos)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(scrollDispositivos, javax.swing.GroupLayout.DEFAULT_SIZE, 80, Short.MAX_VALUE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(scrollDispositivos, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 8, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(salir)
-                    .addComponent(btnTransferir))
-                .addContainerGap())
+                    .addComponent(btnTransferir)
+                    .addComponent(salir))
+                .addGap(12, 12, 12))
         );
 
         pack();
@@ -189,8 +193,8 @@ public class Panel extends javax.swing.JFrame {
         System.exit(0);
     }//GEN-LAST:event_salirActionPerformed
 
-    private void seleccionarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_seleccionarActionPerformed
-        int resultado = chooser.showDialog(seleccionar, "Seleccionar");
+    private void btnSeleccionarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSeleccionarActionPerformed
+        int resultado = chooser.showDialog(btnSeleccionar, "Seleccionar");
         
         if (resultado == JFileChooser.APPROVE_OPTION) {
             File[] archivos = chooser.getSelectedFiles();
@@ -203,7 +207,7 @@ public class Panel extends javax.swing.JFrame {
             
             habilitarBoton();
         }
-    }//GEN-LAST:event_seleccionarActionPerformed
+    }//GEN-LAST:event_btnSeleccionarActionPerformed
 
     private void btnTransferirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnTransferirActionPerformed
         int res = JOptionPane.showConfirmDialog(this, "La transferencia está por iniciar.", "Iniciando transferencia", JOptionPane.OK_CANCEL_OPTION);
@@ -263,6 +267,7 @@ public class Panel extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnSeleccionar;
     private javax.swing.JButton btnTransferir;
     private javax.swing.JFileChooser chooser;
     private javax.swing.JLabel labelDispositivos;
@@ -271,7 +276,6 @@ public class Panel extends javax.swing.JFrame {
     private javax.swing.JButton salir;
     private javax.swing.JScrollPane scrollArchivos;
     private javax.swing.JScrollPane scrollDispositivos;
-    private javax.swing.JButton seleccionar;
     private javax.swing.JLabel texto;
     // End of variables declaration//GEN-END:variables
 }
