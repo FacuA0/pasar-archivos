@@ -37,8 +37,8 @@ public class Progreso extends javax.swing.JFrame {
         actualizarBarras();
     }
     
-    public int agregarTransferencia(Modo modo, InetAddress direccion) {
-        Datos datos = new Datos(modo, direccion);
+    public int agregarTransferencia(Transferencia.Transferidor hilo, Modo modo, InetAddress direccion) {
+        Datos datos = new Datos(hilo, modo, direccion);
         
         transferencias.add(datos);
         actualizarTitulo();
@@ -235,9 +235,10 @@ public class Progreso extends javax.swing.JFrame {
         String nombreHost;
         ArrayList<Long> velocidadesPromedio;
         PanelProgreso panel;
+        Transferencia.Transferidor hilo;
         Modo modo;
         
-        public Datos(Modo modo, InetAddress direccion) {
+        public Datos(Transferencia.Transferidor hilo, Modo modo, InetAddress direccion) {
             this.modo = modo;
             this.nombreArchivo = "";
             this.cantidadArchivos = 1;
@@ -248,8 +249,15 @@ public class Progreso extends javax.swing.JFrame {
             this.velocidadesPromedio = new ArrayList();
             this.direccion = direccion;
             this.nombreHost = "";
+            this.hilo = hilo;
             
             this.panel = new PanelProgreso();
+        }
+    }
+    
+    private void detenerTodo() {
+        for (Datos d: transferencias) {
+            d.hilo.detener();
         }
     }
     
@@ -319,7 +327,7 @@ public class Progreso extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
-        
+        detenerTodo();
     }//GEN-LAST:event_formWindowClosing
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

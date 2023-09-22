@@ -18,7 +18,7 @@ import javax.swing.JOptionPane;
 /**
  * @author Facu
  */
-public class Transferencia extends Thread {
+public class Transferencia {
     private static final int PUERTO = 9060;
     private static final String LOCK = "lock";
     private static Servidor servidor;
@@ -94,8 +94,9 @@ public class Transferencia extends Thread {
      * archivo y sus metadatos al otro dispositivo por medio de una única
      * conexión TCP.
      */
-    public static class Envio extends Thread {
+    public static class Envio extends Thread implements Transferidor {
         Elementos items;
+        boolean cerrar = false;
         
         Envio(Elementos items) {
             this.items = items;
@@ -117,7 +118,7 @@ public class Transferencia extends Thread {
             }
 
             // Abrir barra en la ventana de progreso
-            int idPanel = panelProgreso.agregarTransferencia(Progreso.Modo.ENVIAR, items.ip);
+            int idPanel = panelProgreso.agregarTransferencia(this, Progreso.Modo.ENVIAR, items.ip);
 
             // Empezar a enviar datos
             try {
@@ -209,6 +210,9 @@ public class Transferencia extends Thread {
                             time = System.currentTimeMillis();
                             velocidad = 0;
                         }
+                        
+                        if (cerrar) break;
+                        
                         if (bytes.length == 0) fin = true;
                     }
 
@@ -216,6 +220,8 @@ public class Transferencia extends Thread {
 
                     // Cerrar archivo
                     fileIO.close();
+                    
+                    if (cerrar) break;
                 }
             }
             catch (IOException e) {
@@ -238,8 +244,9 @@ public class Transferencia extends Thread {
             }
         }
         
+        @Override
         public void detener() {
-            // Rellenar
+            cerrar = true;
         }
     }
     
@@ -249,8 +256,9 @@ public class Transferencia extends Thread {
      * Maneja la recepción de datos de la conexión remota y guarda los
      * archivos entrantes en el escritorio del equipo.
      */
-    public static class Recepcion extends Thread {
+    public static class Recepcion extends Thread implements Transferidor {
         Socket socket;
+        boolean cerrar = false;
         
         Recepcion(Socket socket) {
             this.socket = socket;
@@ -269,7 +277,7 @@ public class Transferencia extends Thread {
             }
 
             // Agregar transferencia a la ventana de progreso
-            int idPanel = panelProgreso.agregarTransferencia(Progreso.Modo.RECIBIR, socket.getInetAddress());
+            int idPanel = panelProgreso.agregarTransferencia(this, Progreso.Modo.RECIBIR, socket.getInetAddress());
 
             try {
                 // Recibir cantidad de archivos a transferir
@@ -364,7 +372,9 @@ public class Transferencia extends Thread {
                             time = System.currentTimeMillis();
                             velocidad = 0;
                         }
-
+                        
+                        if (cerrar) break;
+                        
                         if (progreso >= longitud) fin = true;
                     }
 
@@ -374,6 +384,8 @@ public class Transferencia extends Thread {
                     fileIO.close();
 
                     archivo.setLastModified(modificado);
+                    
+                    if (cerrar) break;
                 }
             } 
             catch (IOException ex) {
@@ -394,9 +406,14 @@ public class Transferencia extends Thread {
             }
         }
         
+        @Override
         public void detener() {
-            // Rellenar
+            cerrar = true;
         }
+    }
+    
+    public static interface Transferidor {
+        public void detener();
     }
     
     private static long escribirArrayNumero(long numero, byte[] lista, int posicion) {
@@ -415,12 +432,6 @@ public class Transferencia extends Thread {
             return numero | ((int) lista[posicion] << bits);
         else 
             return numero | ((int) (lista[posicion] + 256) << bits);
-    }
-    
-    private static enum Modo {
-        ENVIAR,
-        RECIBIR,
-        ESCUCHAR
     }
     
     public static class Elementos {
