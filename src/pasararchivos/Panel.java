@@ -97,11 +97,11 @@ public class Panel extends javax.swing.JFrame {
         chooser.setDialogTitle("Elegir archivos");
         chooser.setFileFilter(null);
 
-        setTitle("Pasar Archivos 1.1");
+        setTitle("Pasar Archivos 1.2");
 
         texto.setText("Hola usuario");
 
-        btnSeleccionar.setText("Seleccionar archivo");
+        btnSeleccionar.setText("Seleccionar archivos");
         btnSeleccionar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnSeleccionarActionPerformed(evt);

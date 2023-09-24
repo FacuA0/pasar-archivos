@@ -12,7 +12,7 @@
     </Component>
   </NonVisualComponents>
   <Properties>
-    <Property name="title" type="java.lang.String" value="Pasar Archivos 1.1"/>
+    <Property name="title" type="java.lang.String" value="Pasar Archivos 1.2"/>
   </Properties>
   <SyntheticProperties>
     <SyntheticProperty name="formSizePolicy" type="int" value="1"/>
@@ -95,7 +95,7 @@
     </Component>
     <Component class="javax.swing.JButton" name="btnSeleccionar">
       <Properties>
-        <Property name="text" type="java.lang.String" value="Seleccionar archivo"/>
+        <Property name="text" type="java.lang.String" value="Seleccionar archivos"/>
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnSeleccionarActionPerformed"/>
