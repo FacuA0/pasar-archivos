@@ -256,6 +256,13 @@ public class Progreso extends javax.swing.JFrame {
     }
     
     private void detenerTodo() {
+        if (transferencias.size() == 1) {
+            setTitle("Cancelando transferencia...");
+        }
+        else {
+            setTitle("Cancelando transferencias...");
+        }
+        
         for (Datos d: transferencias) {
             d.hilo.detener();
         }
