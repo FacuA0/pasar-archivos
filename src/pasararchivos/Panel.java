@@ -45,7 +45,7 @@ public class Panel extends javax.swing.JFrame {
         
         chooser.setMultiSelectionEnabled(true);
         
-        dispositivos = new HashMap<String, String>();
+        dispositivos = new HashMap<>();
     }
     
     public void actualizarLista() {
@@ -201,8 +201,8 @@ public class Panel extends javax.swing.JFrame {
             
             modeloArchivos.clear();
             
-            for (int i = 0; i < archivos.length; i++) {
-                modeloArchivos.addElement(archivos[i].getAbsolutePath());
+            for (File archivo: archivos) {
+                modeloArchivos.addElement(archivo.getAbsolutePath());
             }
             
             habilitarBoton();

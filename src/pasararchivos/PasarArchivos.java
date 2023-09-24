@@ -20,13 +20,14 @@ public class PasarArchivos {
      * @param args argumentos de línea de comandos
      */
     public static void main(String[] args) {
+        Panel.initTheme();
+        
         if (!SystemTray.isSupported()) {
             System.err.println("La bandeja de íconos no está soportada.");
             JOptionPane.showMessageDialog(null, "La bandeja de íconos del sistema no está disponible para Java. Cerrando aplicación.", "Error de inicio", JOptionPane.ERROR_MESSAGE);
             return;
         }
         
-        Panel.initTheme();
         panel = new Panel();
         
         try {
@@ -41,7 +42,8 @@ public class PasarArchivos {
                 e.printStackTrace();
                 JOptionPane.showMessageDialog(null, "Hubo un error al iniciar la funcionalidad de descubrir otros dispositivos. Cerrando aplicación.", "Error de inicio", JOptionPane.ERROR_MESSAGE);
             }
-            return;
+            
+            System.exit(1);
         }
         
         boolean abrir = true;

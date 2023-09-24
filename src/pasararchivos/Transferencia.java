@@ -226,7 +226,7 @@ public class Transferencia {
             }
             catch (IOException e) {
                 e.printStackTrace();
-                JOptionPane.showMessageDialog(PasarArchivos.panel, "Hubo un error de entrada/salida mientras se transferían los archivos.", "Error de I/O", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(PasarArchivos.panel, "La transferencia fue cancelada por el otro equipo o hubo un error de I/O.", "Error de I/O", JOptionPane.ERROR_MESSAGE);
             }
             catch (Exception e) {
                 e.printStackTrace();
