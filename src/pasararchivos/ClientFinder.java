@@ -17,22 +17,15 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * @author Facu
  */
-public class ClientFinder extends Thread {
+public class ClientFinder {
     private static final int PUERTO = 9060;
     private static final String LOCK = "lock";
-    private static ClientFinder emitter;
-    private static ClientFinder[] listeners;
+    private static Envio emisor;
+    private static Escucha[] listeners;
     private static ConcurrentHashMap<String, Clientes> pares;
     private static String nombreHost;
     private static DatagramSocket[] sockets;
     private static InetAddress[] direcciones;
-    int indice;
-    Mode mode;
-    
-    private ClientFinder(Mode mode, int indice) {
-        this.mode = mode;
-        this.indice = indice;
-    }
     
     public static void init() throws RuntimeException {
         nombreHost = obtenerNombreHost();
@@ -58,12 +51,12 @@ public class ClientFinder extends Thread {
         
         pares = new ConcurrentHashMap();
         
-        emitter = new ClientFinder(Mode.EMITTER, 0);
-        emitter.start();
+        emisor = new Envio();
+        emisor.start();
         
-        listeners = new ClientFinder[direcciones.length];
+        listeners = new Escucha[direcciones.length];
         for (int i = 0; i < direcciones.length; i++) {
-            listeners[i] = new ClientFinder(Mode.RECEIVER, i);
+            listeners[i] = new Escucha(i);
             listeners[i].start();
         }
     }
@@ -107,125 +100,128 @@ public class ClientFinder extends Thread {
         return InetAddress.getAllByName(nombreHost);
     }
     
-    @Override
-    public void run() {
-        if (mode == Mode.EMITTER) {
-            emit();
-        }
-        else {
-            listen();
-        }
-    }
-    
-    public void emit() {
-        InetAddress broadcast4, broadcast6, broadcast;
-        try {
-            broadcast4 = InetAddress.getByName("255.255.255.255");
-            broadcast6 = InetAddress.getByName("ff02::1");
-        } catch (UnknownHostException ex) {
-            System.err.println("Error al crear dirección de broadcast.");
-            return;
-        }
+    public static class Envio extends Thread {
+        InetAddress broadcast4, broadcast6;
         
-        byte[] contenido = ("Usuario:" + nombreHost).getBytes();
-        
-        while (true) {
-            DatagramPacket packet;
+        Envio() {
             try {
-                System.out.println("Enviando paquetes");
-                for (int i = 0; i < sockets.length; i++) {
-                    if (direcciones[i] instanceof Inet6Address) {
-                        broadcast = broadcast6;
-                    }
-                    else {
-                        broadcast = broadcast4;
-                    }
-                    packet = new DatagramPacket(contenido, contenido.length, broadcast, PUERTO);
-                    sockets[i].send(packet);
-                }
-                
-            } catch (IOException ex) {
-                ex.printStackTrace();
+                broadcast4 = InetAddress.getByName("255.255.255.255");
+                broadcast6 = InetAddress.getByName("ff02::1");
+            } catch (UnknownHostException ex) {
+                System.err.println("Error al crear dirección de broadcast.");
+                return;
             }
-            
-            // Remover pares viejos no renovados
-            long limite = 6000;
-            synchronized (LOCK) {
-                for (String clave: pares.keySet()) {
-                    long ahora = new Date().getTime();
-                    long antes = pares.get(clave).fechaEmision;
+        }
+        
+        @Override
+        public void run() {
+            InetAddress broadcast;
 
-                    if (ahora - antes > limite) {
-                        pares.remove(clave);
+            byte[] contenido = ("Usuario:" + nombreHost).getBytes();
+
+            while (true) {
+                DatagramPacket packet;
+                try {
+                    System.out.println("Enviando paquetes");
+                    for (int i = 0; i < sockets.length; i++) {
+                        if (direcciones[i] instanceof Inet6Address) {
+                            broadcast = broadcast6;
+                        }
+                        else {
+                            broadcast = broadcast4;
+                        }
+                        packet = new DatagramPacket(contenido, contenido.length, broadcast, PUERTO);
+                        sockets[i].send(packet);
+                    }
+
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+
+                // Remover pares viejos no renovados
+                long limite = 6000;
+                synchronized (LOCK) {
+                    for (String clave: pares.keySet()) {
+                        long ahora = new Date().getTime();
+                        long antes = pares.get(clave).fechaEmision;
+
+                        if (ahora - antes > limite) {
+                            pares.remove(clave);
+                        }
                     }
                 }
-            }
-            
-            EventQueue.invokeLater(() -> {
-                Panel panel = PasarArchivos.panel;
-                if (panel != null && panel.isVisible()) {
-                    PasarArchivos.panel.actualizarLista();
+
+                EventQueue.invokeLater(() -> {
+                    Panel panel = PasarArchivos.panel;
+                    if (panel != null && panel.isVisible()) {
+                        PasarArchivos.panel.actualizarLista();
+                    }
+                });
+
+                try {
+                    Thread.sleep(3000);
                 }
-            });
-            
-            try {
-                Thread.sleep(3000);
-            }
-            catch (Exception e) {}
-        }
-    }
-    
-    public void listen() {
-        while (true) {
-            byte[] datos = new byte[72];
-            DatagramPacket paquete = new DatagramPacket(datos, datos.length);
-            try {
-                sockets[indice].receive(paquete);
-                
-                // El paquete es muy pequeño. Descartar.
-                if (paquete.getLength() <= 8) {
-                    continue;
-                }
-                
-                byte[] firma = new byte[8];
-                System.arraycopy(datos, 0, firma, 0, 8);
-                
-                // El paquete vino de otro programa y se equivocó de puerto. Descartar.
-                if (!new String(firma).equals("Usuario:")) {
-                    continue;
-                }
-                
-                InetAddress origen = paquete.getAddress();
-                
-                // Recibimos nuestro propio paquete. Descartar.
-                if (origen.getHostAddress().equals(direcciones[indice].getHostAddress())) {
-                    continue;
-                }
-                
-                long ahora = new Date().getTime();
-                
-                // Nombre del equipo
-                byte[] nombreB = new byte[paquete.getLength() - 8];
-                System.arraycopy(datos, 8, nombreB, 0, nombreB.length);
-                String nombre = new String(nombreB);
-                
-                synchronized (LOCK) {
-                    Clientes nuevo = new Clientes(nombre, origen, ahora);
-                    pares.put(origen.getHostAddress(), nuevo);
-                }
-            } 
-            catch (IOException ex) {
-                System.err.println("Error al esperar paquete");
+                catch (Exception e) {}
             }
         }
     }
     
-    enum Mode {
-        EMITTER,
-        RECEIVER
+    public static class Escucha extends Thread {
+        int indice;
+        
+        Escucha(int indice) {
+            this.indice = indice;
+        }
+        
+        @Override
+        public void run() {
+            while (true) {
+                byte[] datos = new byte[72];
+                DatagramPacket paquete = new DatagramPacket(datos, datos.length);
+                try {
+                    sockets[indice].receive(paquete);
+
+                    // El paquete es muy pequeño. Descartar.
+                    if (paquete.getLength() <= 8) {
+                        continue;
+                    }
+
+                    byte[] firma = new byte[8];
+                    System.arraycopy(datos, 0, firma, 0, 8);
+
+                    // El paquete vino de otro programa y se equivocó de puerto. Descartar.
+                    if (!new String(firma).equals("Usuario:")) {
+                        continue;
+                    }
+
+                    InetAddress origen = paquete.getAddress();
+                    System.out.println(indice + ": Paquete recibido de " + origen.getHostAddress());
+
+                    // Recibimos nuestro propio paquete. Descartar.
+                    if (origen.getHostAddress().equals(direcciones[indice].getHostAddress())) {
+                        continue;
+                    }
+
+                    long ahora = new Date().getTime();
+
+                    // Nombre del equipo
+                    byte[] nombreB = new byte[paquete.getLength() - 8];
+                    System.arraycopy(datos, 8, nombreB, 0, nombreB.length);
+                    String nombre = new String(nombreB);
+
+                    synchronized (LOCK) {
+                        Clientes nuevo = new Clientes(nombre, origen, ahora);
+                        pares.put(origen.getHostAddress(), nuevo);
+                    }
+                } 
+                catch (IOException ex) {
+                    System.err.println("Error al esperar paquete");
+                }
+            }
+        }
     }
     
-    public class Clientes {
+    public static class Clientes {
         public String nombre;
         public InetAddress direccion;
         public long fechaEmision;
