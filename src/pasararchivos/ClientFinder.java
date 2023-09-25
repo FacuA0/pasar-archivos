@@ -10,6 +10,7 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
@@ -96,27 +97,36 @@ public class ClientFinder {
         InetAddress direccion = sock.getLocalAddress();
         sock.close();
         */
+        InetAddress[] dirs = InetAddress.getAllByName(nombreHost);
+        int cuentaIPv4 = 0;
+        for (InetAddress dir: dirs) {
+            if (dir instanceof Inet4Address) cuentaIPv4++;
+        }
         
-        return InetAddress.getAllByName(nombreHost);
+        InetAddress[] dirs4 = new InetAddress[cuentaIPv4];
+        
+        for (int i = 0, j = 0; i < cuentaIPv4; i++) {
+            if (dirs[i] instanceof Inet4Address) {
+                dirs4[j++] = dirs[i];
+            }
+        }
+        return dirs4;
     }
     
     public static class Envio extends Thread {
-        InetAddress broadcast4, broadcast6;
+        InetAddress broadcast;
         
         Envio() {
             try {
-                broadcast4 = InetAddress.getByName("255.255.255.255");
-                broadcast6 = InetAddress.getByName("ff02::1");
+                broadcast = InetAddress.getByName("255.255.255.255");
+                //broadcast6 = InetAddress.getByName("ff02::1");
             } catch (UnknownHostException ex) {
                 System.err.println("Error al crear dirección de broadcast.");
-                return;
             }
         }
         
         @Override
         public void run() {
-            InetAddress broadcast;
-
             byte[] contenido = ("Usuario:" + nombreHost).getBytes();
 
             while (true) {
@@ -124,12 +134,6 @@ public class ClientFinder {
                 try {
                     System.out.println("Enviando paquetes");
                     for (int i = 0; i < sockets.length; i++) {
-                        if (direcciones[i] instanceof Inet6Address) {
-                            broadcast = broadcast6;
-                        }
-                        else {
-                            broadcast = broadcast4;
-                        }
                         packet = new DatagramPacket(contenido, contenido.length, broadcast, PUERTO);
                         sockets[i].send(packet);
                     }
@@ -196,6 +200,12 @@ public class ClientFinder {
 
                     InetAddress origen = paquete.getAddress();
                     System.out.println(indice + ": Paquete recibido de " + origen.getHostAddress());
+                    
+                    // Probablemente hayamos recibido una versión de nuestro paquete en formato
+                    // IPv4 mapeado a IPv6 (lo cual pasa con direcciones enlace-local). Descartar.
+                    if (origen instanceof Inet6Address) {
+                        continue;
+                    }
 
                     // Recibimos nuestro propio paquete. Descartar.
                     if (origen.getHostAddress().equals(direcciones[indice].getHostAddress())) {
