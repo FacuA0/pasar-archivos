@@ -4,6 +4,8 @@ import java.awt.EventQueue;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.Inet4Address;
+import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.SocketException;
@@ -18,45 +20,52 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ClientFinder extends Thread {
     private static final int PUERTO = 9060;
     private static final String LOCK = "lock";
-    private static ClientFinder emitter, listener;
+    private static ClientFinder emitter;
+    private static ClientFinder[] listeners;
     private static ConcurrentHashMap<String, Clientes> pares;
-    private static String nombre;
-    private static DatagramSocket socket;
-    private static InetAddress direccionLocal;
+    private static String nombreHost;
+    private static DatagramSocket[] sockets;
+    private static InetAddress[] direcciones;
+    int indice;
     Mode mode;
     
-    private ClientFinder(Mode mode) {
+    private ClientFinder(Mode mode, int indice) {
         this.mode = mode;
+        this.indice = indice;
     }
     
     public static void init() throws RuntimeException {
+        nombreHost = obtenerNombreHost();
+        
         try {
-            direccionLocal = InetAddress.getByName(getLocalAddress());
-            socket = new DatagramSocket(PUERTO, direccionLocal);
+            direcciones = obtenerDireccionesLocales();
+        
+            sockets = new DatagramSocket[direcciones.length];
+            for (int i = 0; i < direcciones.length; i++) {
+                sockets[i] = new DatagramSocket(PUERTO, direcciones[i]);
+            }
         }
         catch (SocketException e) {
-            throw new RuntimeException(e);
-        }
-        catch (UnknownHostException e) {
             throw new RuntimeException(e);
         }
         catch (IOException e) {
             throw new RuntimeException(e);
         }
         
-        listener = new ClientFinder(Mode.RECEIVER);
-        emitter = new ClientFinder(Mode.EMITTER);
-            
-        pares = new ConcurrentHashMap();
-        try {
-            nombre = InetAddress.getLocalHost().getHostName();
-        }
-        catch (UnknownHostException e) {
-            nombre = "Desconocido";
+        if (nombreHost == null) {
+            nombreHost = "Desconocido";
         }
         
-        listener.start();
+        pares = new ConcurrentHashMap();
+        
+        emitter = new ClientFinder(Mode.EMITTER, 0);
         emitter.start();
+        
+        listeners = new ClientFinder[direcciones.length];
+        for (int i = 0; i < direcciones.length; i++) {
+            listeners[i] = new ClientFinder(Mode.RECEIVER, i);
+            listeners[i].start();
+        }
     }
     
     public static HashMap<String, String> getDispositivos() {
@@ -71,12 +80,31 @@ public class ClientFinder extends Thread {
         }
     }
     
-    private static String getLocalAddress() throws IOException {
+    private static String obtenerNombreHost() {
+        try {
+            return InetAddress.getLocalHost().getHostName();
+        }
+        catch (UnknownHostException e) {
+            return null;
+        }
+    }
+    
+    private static InetAddress[] obtenerDireccionesLocales() throws IOException {
+        if (nombreHost == null) {
+            DatagramSocket socket = new DatagramSocket();
+            socket.connect(InetAddress.getByName("8.8.8.8"), 10000);
+            InetAddress direccion = socket.getLocalAddress();
+            
+            return new InetAddress[] {direccion};
+        }
+        
+        /*
         Socket sock = new Socket(InetAddress.getByName("8.8.8.8"), 53);
         InetAddress direccion = sock.getLocalAddress();
         sock.close();
+        */
         
-        return direccion.getHostAddress();
+        return InetAddress.getAllByName(nombreHost);
     }
     
     @Override
@@ -90,24 +118,34 @@ public class ClientFinder extends Thread {
     }
     
     public void emit() {
-        InetAddress broadcast;
+        InetAddress broadcast4, broadcast6, broadcast;
         try {
-            broadcast = InetAddress.getByName("255.255.255.255");
+            broadcast4 = InetAddress.getByName("255.255.255.255");
+            broadcast6 = InetAddress.getByName("ff02::1");
         } catch (UnknownHostException ex) {
             System.err.println("Error al crear dirección de broadcast.");
             return;
         }
         
-        byte[] contenido = ("Usuario:" + nombre).getBytes();
+        byte[] contenido = ("Usuario:" + nombreHost).getBytes();
         
         while (true) {
             DatagramPacket packet;
             try {
-                System.out.println("Enviando paquete");
-                packet = new DatagramPacket(contenido, contenido.length, broadcast, PUERTO);
-                socket.send(packet);
+                System.out.println("Enviando paquetes");
+                for (int i = 0; i < sockets.length; i++) {
+                    if (direcciones[i] instanceof Inet6Address) {
+                        broadcast = broadcast6;
+                    }
+                    else {
+                        broadcast = broadcast4;
+                    }
+                    packet = new DatagramPacket(contenido, contenido.length, broadcast, PUERTO);
+                    sockets[i].send(packet);
+                }
+                
             } catch (IOException ex) {
-                System.err.println(ex);
+                ex.printStackTrace();
             }
             
             // Remover pares viejos no renovados
@@ -142,7 +180,7 @@ public class ClientFinder extends Thread {
             byte[] datos = new byte[72];
             DatagramPacket paquete = new DatagramPacket(datos, datos.length);
             try {
-                socket.receive(paquete);
+                sockets[indice].receive(paquete);
                 
                 // El paquete es muy pequeño. Descartar.
                 if (paquete.getLength() <= 8) {
@@ -160,7 +198,7 @@ public class ClientFinder extends Thread {
                 InetAddress origen = paquete.getAddress();
                 
                 // Recibimos nuestro propio paquete. Descartar.
-                if (origen.getHostAddress().equals(direccionLocal.getHostAddress())) {
+                if (origen.getHostAddress().equals(direcciones[indice].getHostAddress())) {
                     continue;
                 }
                 
