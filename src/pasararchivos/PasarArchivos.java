@@ -8,7 +8,14 @@ import java.awt.Toolkit;
 import java.awt.TrayIcon;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.net.BindException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 
 /**
@@ -16,18 +23,21 @@ import javax.swing.JOptionPane;
  */
 public class PasarArchivos {
     public static Panel panel;
+    public static final Logger log = Logger.getLogger("PasarArchivos");
     /**
      * @param args argumentos de línea de comandos
      */
     public static void main(String[] args) {
-        Panel.initTheme();
+        definirRegistro();
         
         if (!SystemTray.isSupported()) {
             System.err.println("La bandeja de íconos no está soportada.");
             JOptionPane.showMessageDialog(null, "La bandeja de íconos del sistema no está disponible para Java. Cerrando aplicación.", "Error de inicio", JOptionPane.ERROR_MESSAGE);
+            log.severe("La bandeja de íconos del sistema no está disponible para Java. Cerrando aplicación.");
             return;
         }
         
+        Panel.initTheme();
         panel = new Panel();
         
         try {
@@ -58,6 +68,59 @@ public class PasarArchivos {
         }
         
         crearIconoBandeja();
+    }
+    
+    private static void definirRegistro() {
+        log.setLevel(Level.SEVERE);
+        log.addHandler(new java.util.logging.Handler() {
+            static FileWriter escritor;
+            static {
+                SimpleDateFormat formatoArchivo = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss.SSS");
+                try {
+                    escritor = new FileWriter("logs/" + formatoArchivo.format(new Date()) + ".txt");
+                }
+                catch (IOException e) {
+                    escritor = null;
+                }
+            }
+            
+            @Override
+            public void close() {
+                if (escritor != null) {
+                    try {
+                        escritor.close();
+                    }
+                    catch (IOException e) {
+                        JOptionPane.showMessageDialog(null, "No se pudo activar el registro.", "Error de registro", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            }
+            
+            @Override
+            public void flush() {
+                if (escritor != null) {
+                    try {
+                        escritor.flush();
+                    }
+                    catch (IOException e) {
+                        JOptionPane.showMessageDialog(null, "No se pudo activar el registro.", "Error de registro", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            }
+            
+            @Override
+            public void publish(java.util.logging.LogRecord registro) {
+                if (escritor == null) return;
+                
+                try {
+                    String mensaje = "[" + registro.getMillis() + "] - " + registro.getMessage();
+                    escritor.write(mensaje);
+                }
+                catch (IOException e) {
+                        JOptionPane.showMessageDialog(null, "No se pudo enviar mensajes al registro..", "Error de registro", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
     }
     
     private static void crearIconoBandeja() {
