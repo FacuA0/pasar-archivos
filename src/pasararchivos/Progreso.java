@@ -4,6 +4,7 @@ import java.awt.Toolkit;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import javax.swing.BoxLayout;
+import javax.swing.JOptionPane;
 import javax.swing.JSeparator;
 
 /**
@@ -334,7 +335,14 @@ public class Progreso extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
-        detenerTodo();
+        boolean singular = transferencias.size() == 1;
+        String titulo = "Detener transferencia" + (singular ? "" : "s");
+        String mensaje = singular ? "¿Deseas detener la transferencia?" : "¿Deseas detener las transferencias?";
+        
+        int detener = JOptionPane.showConfirmDialog(this, mensaje, titulo, JOptionPane.YES_NO_OPTION);
+        if (detener == JOptionPane.YES_OPTION) {
+            detenerTodo();
+        }
     }//GEN-LAST:event_formWindowClosing
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
