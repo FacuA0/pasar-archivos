@@ -70,8 +70,25 @@ public class PasarArchivos {
         crearIconoBandeja();
     }
     
+    public static void mostrarDialogo(String titulo, String mensaje) {
+        int tipoInfo = JOptionPane.INFORMATION_MESSAGE;
+        JOptionPane.showMessageDialog(panel, mensaje, titulo, tipoInfo);
+    }
+    
+    public static void error(Exception error, String titulo, String mensaje) {
+        if (error != null) {
+            error.printStackTrace();
+        }
+        
+        String logError = error != null ? error.toString() : "No error.";
+        log.log(Level.SEVERE, "{0}: {1} - {2}", new Object[] {titulo, mensaje, logError});
+        
+        int tipoError = JOptionPane.ERROR_MESSAGE;
+        JOptionPane.showMessageDialog(panel, mensaje, titulo, tipoError);
+    }
+    
     private static void definirRegistro() {
-        log.setLevel(Level.SEVERE);
+        log.setLevel(Level.WARNING);
         log.addHandler(new java.util.logging.Handler() {
             static FileWriter escritor;
             static {
@@ -117,7 +134,7 @@ public class PasarArchivos {
                     escritor.write(mensaje);
                 }
                 catch (IOException e) {
-                        JOptionPane.showMessageDialog(null, "No se pudo enviar mensajes al registro..", "Error de registro", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(null, "No se pudo enviar mensajes al registro..", "Error de registro", JOptionPane.ERROR_MESSAGE);
                 }
             }
         });

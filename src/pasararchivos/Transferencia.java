@@ -13,6 +13,7 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.logging.Level;
 import javax.swing.JOptionPane;
 
 /**
@@ -36,7 +37,10 @@ public class Transferencia {
         try {
             ip = InetAddress.getByName(direccion);
         } catch (UnknownHostException ex) {
-            JOptionPane.showMessageDialog(PasarArchivos.panel, "Hubo un error parseando la dirección IP del destino.", "Error de IP", JOptionPane.ERROR_MESSAGE);
+            String titulo = "Error de IP";
+            String mensaje = "Hubo un error parseando la dirección IP del destino.";
+            PasarArchivos.log.log(Level.SEVERE, "{0}: {1}", new String[] {titulo, mensaje});
+            JOptionPane.showMessageDialog(PasarArchivos.panel, mensaje, titulo, JOptionPane.ERROR_MESSAGE);
             return;
         }
         
@@ -112,8 +116,8 @@ public class Transferencia {
                 stream = socket.getOutputStream();
             }
             catch (IOException e) {
-                e.printStackTrace();
-                JOptionPane.showMessageDialog(PasarArchivos.panel, "Hubo un error de entrada/salida al crear el socket.", "Error de I/O", JOptionPane.ERROR_MESSAGE);
+                String mensaje = "Hubo un error de entrada/salida al crear el socket.";
+                PasarArchivos.error(e, "Error de I/O", mensaje);
                 return;
             }
 
@@ -143,6 +147,7 @@ public class Transferencia {
                     }
                     catch (IOException e) {
                         System.err.println("Hubo un error de I/O al intentar leer un archivo.");
+                        PasarArchivos.log.log(Level.WARNING, "No se pudo leer el archivo. Pasando al siguiente. {0}", new String[] {e.toString()});
 
                         // Enviar longitud de nombre 0, lo que indica que no hay archivo
                         stream.write(0);
@@ -225,12 +230,12 @@ public class Transferencia {
                 }
             }
             catch (IOException e) {
-                e.printStackTrace();
-                JOptionPane.showMessageDialog(PasarArchivos.panel, "La transferencia fue cancelada por el otro equipo o hubo un error de I/O.", "Error de I/O", JOptionPane.ERROR_MESSAGE);
+                String mensaje = "La transferencia fue cancelada por el otro equipo o hubo un error de I/O.";
+                PasarArchivos.error(e, "Error de I/O", mensaje);
             }
             catch (Exception e) {
-                e.printStackTrace();
-                JOptionPane.showMessageDialog(PasarArchivos.panel, "Hubo un error general durante la transferencia: " + e.toString(), "Error general", JOptionPane.ERROR_MESSAGE);
+                String mensaje = "Hubo un error durante la transferencia.";
+                PasarArchivos.error(e, "Error general", mensaje);
             }
 
             panelProgreso.removerTransferencia(idPanel);
@@ -240,7 +245,8 @@ public class Transferencia {
                 socket.close();
             }
             catch (IOException e) {
-                System.err.println("Error al cerrar socket: " + e.toString());
+                String mensaje = "Hubo un error al cerrar el socket.";
+                PasarArchivos.error(e, "Error general", mensaje);
             }
         }
         
@@ -271,8 +277,8 @@ public class Transferencia {
                 stream = socket.getInputStream();
             }
             catch (IOException e) {
-                e.printStackTrace();
-                JOptionPane.showMessageDialog(PasarArchivos.panel, "Hubo un error de entrada/salida al obtener el flujo de datos del socket.", "Error de I/O", JOptionPane.ERROR_MESSAGE);
+                String mensaje = "Hubo un error de entrada/salida al obtener el flujo de datos del socket.";
+                PasarArchivos.error(e, "Error de I/O", mensaje);
                 return;
             }
 
@@ -341,7 +347,8 @@ public class Transferencia {
                         fileIO = new FileOutputStream(archivo);
                     }
                     catch (IOException e) {
-                        e.printStackTrace();
+                        String mensaje = "Hubo un error al intentar guardar el archivo entrante en el sistema.";
+                        PasarArchivos.error(e, "Error de I/O", mensaje);
                         break;
                     }
 
@@ -389,11 +396,12 @@ public class Transferencia {
                 }
             } 
             catch (IOException ex) {
-                System.err.println("Error en la recepción");
-                ex.printStackTrace();
+                String mensaje = "Hubo un error de entrada/salida al recibir el archivo.";
+                PasarArchivos.error(ex, "Error de I/O", mensaje);
             }
             catch (Exception e) {
-                e.printStackTrace();
+                String mensaje = "Hubo un error al recibir el archivo.";
+                PasarArchivos.error(e, "Error de I/O", mensaje);
             }
 
             panelProgreso.removerTransferencia(idPanel);
@@ -402,7 +410,8 @@ public class Transferencia {
                 socket.close();
             }
             catch (IOException e) {
-                System.err.println("Hubo un error al cerrar el socket.");
+                String mensaje = "Hubo un error al cerrar el socket.";
+                PasarArchivos.error(e, "Error de I/O", mensaje);
             }
         }
         
