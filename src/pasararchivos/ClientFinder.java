@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
 
 /**
  * @author Facu
@@ -121,7 +122,7 @@ public class ClientFinder {
                 broadcast = InetAddress.getByName("255.255.255.255");
                 //broadcast6 = InetAddress.getByName("ff02::1");
             } catch (UnknownHostException ex) {
-                System.err.println("Error al crear dirección de broadcast.");
+                PasarArchivos.log.log(Level.SEVERE, "Error al crear dirección de broadcast.");
             }
         }
         
@@ -140,6 +141,7 @@ public class ClientFinder {
 
                 } catch (IOException ex) {
                     ex.printStackTrace();
+                    PasarArchivos.log.log(Level.SEVERE, "Error al enviar paquetes de descubrimiento.");
                 }
 
                 // Remover pares viejos no renovados
@@ -165,7 +167,7 @@ public class ClientFinder {
                 try {
                     Thread.sleep(3000);
                 }
-                catch (Exception e) {}
+                catch (InterruptedException e) {}
             }
         }
     }
@@ -225,7 +227,7 @@ public class ClientFinder {
                     }
                 } 
                 catch (IOException ex) {
-                    System.err.println("Error al esperar paquete");
+                    PasarArchivos.log.log(Level.SEVERE, "Error al esperar paquete.");
                 }
             }
         }

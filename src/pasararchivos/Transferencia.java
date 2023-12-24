@@ -200,14 +200,16 @@ public class Transferencia {
 
                     long progreso = 0;
                     long velocidad = 0;
-                    boolean fin = false;
 
                     // Enviar el contenido del archivo
-                    while (!fin) {
-                        byte[] bytes = fileIO.readNBytes(4096);
-                        stream.write(bytes);
-                        progreso += bytes.length;
-                        velocidad += bytes.length;
+                    byte[] bytes = new byte[4096];
+                    while (true) {
+                        int len = fileIO.read(bytes);
+                        if (len == -1) break;
+                        
+                        progreso += len;
+                        velocidad += len;
+                        stream.write(bytes, 0, len);
 
                         // Cada cierto tiempo, actualizar la ventana de progreso
                         if (System.currentTimeMillis() - time > 16) {
@@ -217,8 +219,6 @@ public class Transferencia {
                         }
                         
                         if (cerrar) break;
-                        
-                        if (bytes.length == 0) fin = true;
                     }
 
                     panelProgreso.setDatos(idPanel, progreso, largo, 0);
@@ -331,12 +331,15 @@ public class Transferencia {
                         modificado = escribirArrayNumero(modificado, modificadoBytes, i);
 
                     // Determinar el nombre final del archivo considerando duplicados
-                    String ruta = System.getProperty("user.home") + "/Desktop/" + nombre;
+                    String rutaBase = System.getProperty("user.home") + "/Desktop/";
+                    String ruta = rutaBase + nombre;
                     for (int i = 2; new File(ruta).exists(); i++) {
                         int punto = nombre.lastIndexOf(".");
-                        String sufijo = punto != -1 ? nombre.substring(punto) : "";
-                        String nombre2 = nombre.substring(0, punto);
-                        ruta = System.getProperty("user.home") + "/Desktop/" + nombre2 + " (" + i + ")" + sufijo;
+                        
+                        // Si no hay punto, o el punto se encuentra al principio, se toma todo el nombre.
+                        String sufijo = punto > 0 ? nombre.substring(punto) : "";
+                        String nombre2 = punto > 0 ? nombre.substring(0, punto) : nombre;
+                        ruta = rutaBase + nombre2 + " (" + i + ")" + sufijo;
                     }
 
                     File archivo = new File(ruta);
@@ -365,13 +368,14 @@ public class Transferencia {
 
                     long time = System.currentTimeMillis();
                     long velocidad = 0;
+                    byte[] bytes = new byte[4096];
 
                     // Empezar a guardar el archivo
                     while (!fin) {
-                        byte[] bytes = stream.readNBytes((int) Math.min(longitud - progreso, 4096));
-                        progreso += bytes.length;
-                        velocidad += bytes.length;
-                        fileIO.write(bytes);
+                        int len = stream.read(bytes);
+                        progreso += len;
+                        velocidad += len;
+                        fileIO.write(bytes, 0, len);
 
                         // Cada cierto tiempo, actualizar la ventana de progreso.
                         if (System.currentTimeMillis() - time > 16) {
