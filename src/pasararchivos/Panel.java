@@ -34,6 +34,8 @@ public class Panel extends javax.swing.JFrame {
         setLocationRelativeTo(null);
         setIconImage(Toolkit.getDefaultToolkit().getImage("src/images/icono.png"));
         
+        labelNoIntenet.setVisible(false);
+        
         // Listas
         modeloArchivos = new DefaultListModel<>();
         listaArchivos.setModel(modeloArchivos);
@@ -46,6 +48,10 @@ public class Panel extends javax.swing.JFrame {
         chooser.setMultiSelectionEnabled(true);
         
         dispositivos = new HashMap<>();
+    }
+    
+    public void hayInternet(boolean hay) {
+        labelNoIntenet.setVisible(!hay);
     }
     
     public void actualizarLista() {
@@ -93,6 +99,7 @@ public class Panel extends javax.swing.JFrame {
         listaDispositivos = new javax.swing.JList<>();
         btnTransferir = new javax.swing.JButton();
         salir = new javax.swing.JButton();
+        labelNoIntenet = new javax.swing.JLabel();
 
         chooser.setDialogTitle("Elegir archivos");
         chooser.setFileFilter(null);
@@ -140,6 +147,9 @@ public class Panel extends javax.swing.JFrame {
             }
         });
 
+        labelNoIntenet.setForeground(new java.awt.Color(255, 51, 51));
+        labelNoIntenet.setText("No hay conexión de red");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -153,7 +163,8 @@ public class Panel extends javax.swing.JFrame {
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                             .addGroup(layout.createSequentialGroup()
-                                .addGap(0, 0, Short.MAX_VALUE)
+                                .addComponent(labelNoIntenet)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                 .addComponent(btnTransferir)
                                 .addGap(8, 8, 8)
                                 .addComponent(salir))
@@ -182,7 +193,8 @@ public class Panel extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 8, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnTransferir)
-                    .addComponent(salir))
+                    .addComponent(salir)
+                    .addComponent(labelNoIntenet))
                 .addGap(12, 12, 12))
         );
 
@@ -271,6 +283,7 @@ public class Panel extends javax.swing.JFrame {
     private javax.swing.JButton btnTransferir;
     private javax.swing.JFileChooser chooser;
     private javax.swing.JLabel labelDispositivos;
+    private javax.swing.JLabel labelNoIntenet;
     private javax.swing.JList<String> listaArchivos;
     private javax.swing.JList<String> listaDispositivos;
     private javax.swing.JButton salir;

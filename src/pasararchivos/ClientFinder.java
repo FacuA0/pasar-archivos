@@ -84,13 +84,17 @@ public class ClientFinder {
         }
     }
     
+    private static InetAddress[] obtenerDireccionExterna() throws IOException {
+        DatagramSocket socket = new DatagramSocket();
+        socket.connect(InetAddress.getByName("8.8.8.8"), 10000);
+        InetAddress direccion = socket.getLocalAddress();
+
+        return new InetAddress[] {direccion};
+    }
+    
     private static InetAddress[] obtenerDireccionesLocales() throws IOException {
-        if (nombreHost == null) {
-            DatagramSocket socket = new DatagramSocket();
-            socket.connect(InetAddress.getByName("8.8.8.8"), 10000);
-            InetAddress direccion = socket.getLocalAddress();
-            
-            return new InetAddress[] {direccion};
+        if (nombreHost == null || true) {
+            return obtenerDireccionExterna();
         }
         
         /*
@@ -122,6 +126,7 @@ public class ClientFinder {
                 broadcast = InetAddress.getByName("255.255.255.255");
                 //broadcast6 = InetAddress.getByName("ff02::1");
             } catch (UnknownHostException ex) {
+                ex.printStackTrace();
                 PasarArchivos.log.log(Level.SEVERE, "Error al crear dirección de broadcast.");
             }
         }
@@ -134,9 +139,9 @@ public class ClientFinder {
                 DatagramPacket packet;
                 try {
                     System.out.println("Enviando paquetes");
-                    for (int i = 0; i < sockets.length; i++) {
+                    for (DatagramSocket socket: sockets) {
                         packet = new DatagramPacket(contenido, contenido.length, broadcast, PUERTO);
-                        sockets[i].send(packet);
+                        socket.send(packet);
                     }
 
                 } catch (IOException ex) {

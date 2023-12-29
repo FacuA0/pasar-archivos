@@ -8,10 +8,11 @@ import java.awt.Toolkit;
 import java.awt.TrayIcon;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.BindException;
-import java.text.DateFormat;
+import java.net.InetAddress;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.logging.Level;
@@ -31,9 +32,8 @@ public class PasarArchivos {
         definirRegistro();
         
         if (!SystemTray.isSupported()) {
-            System.err.println("La bandeja de íconos no está soportada.");
-            JOptionPane.showMessageDialog(null, "La bandeja de íconos del sistema no está disponible para Java. Cerrando aplicación.", "Error de inicio", JOptionPane.ERROR_MESSAGE);
-            log.severe("La bandeja de íconos del sistema no está disponible para Java. Cerrando aplicación.");
+            String mensaje = "La bandeja de íconos del sistema no está disponible para Java. Cerrando aplicación.";
+            error(null, "Bandeja de íconos no soportada.", mensaje);
             return;
         }
         
@@ -45,14 +45,16 @@ public class PasarArchivos {
             Transferencia.init();
         }
         catch (RuntimeException e) {
+            String mensaje;
             if (e.getCause() instanceof BindException) {
-                JOptionPane.showMessageDialog(null, "Hubo un error al iniciar la funcionalidad de descubrir otros dispositivos. Probablemente haya otra instancia de la aplicación abierta en segundo plano.", "Error de inicio", JOptionPane.ERROR_MESSAGE);
+                mensaje = "Hubo un error al iniciar la funcionalidad de descubrir otros dispositivos. Probablemente haya otra instancia de la aplicación abierta en segundo plano.";
             }
             else {
-                e.printStackTrace();
-                JOptionPane.showMessageDialog(null, "Hubo un error al iniciar la funcionalidad de descubrir otros dispositivos. Cerrando aplicación.", "Error de inicio", JOptionPane.ERROR_MESSAGE);
+                mensaje = "Hubo un error al iniciar la funcionalidad de descubrir otros dispositivos. Cerrando aplicación.";
             }
             
+            error(e, "Error de inicio", mensaje);
+            //panel.hayInternet(false);
             System.exit(1);
         }
         
@@ -91,50 +93,64 @@ public class PasarArchivos {
         log.setLevel(Level.WARNING);
         log.addHandler(new java.util.logging.Handler() {
             static FileWriter escritor;
-            static {
-                SimpleDateFormat formatoArchivo = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss.SSS");
+            static boolean archivoCreado = false;
+            static final SimpleDateFormat formatoFecha = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss.SSS");
+            
+            private void crearArchivo() {
+                SimpleDateFormat formatoArchivo = new SimpleDateFormat("yyyy-MM-dd-hh-mm-ss_SSS");
                 try {
-                    escritor = new FileWriter("logs/" + formatoArchivo.format(new Date()) + ".txt");
+                    File registro = new File("./logs/" + formatoArchivo.format(new Date()) + ".txt");
+                    registro.getParentFile().mkdirs();
+                    registro.createNewFile();
+                    
+                    escritor = new FileWriter(registro);
                 }
                 catch (IOException e) {
                     escritor = null;
+                    System.err.println("No se pudo inicializar el registro. " + e.toString());
                 }
             }
             
             @Override
             public void close() {
-                if (escritor != null) {
-                    try {
-                        escritor.close();
-                    }
-                    catch (IOException e) {
-                        JOptionPane.showMessageDialog(null, "No se pudo activar el registro.", "Error de registro", JOptionPane.ERROR_MESSAGE);
-                    }
+                if (escritor == null) return;
+                
+                try {
+                    escritor.close();
+                }
+                catch (IOException e) {
+                    JOptionPane.showMessageDialog(null, "No se pudo cerrar el registro.", "Error de registro", JOptionPane.ERROR_MESSAGE);
                 }
             }
             
             @Override
             public void flush() {
-                if (escritor != null) {
-                    try {
-                        escritor.flush();
-                    }
-                    catch (IOException e) {
-                        JOptionPane.showMessageDialog(null, "No se pudo activar el registro.", "Error de registro", JOptionPane.ERROR_MESSAGE);
-                    }
+                if (escritor == null) return;
+                
+                try {
+                    escritor.flush();
+                }
+                catch (IOException e) {
+                    JOptionPane.showMessageDialog(null, "No se pudo guardar el registro.", "Error de registro", JOptionPane.ERROR_MESSAGE);
                 }
             }
             
             @Override
             public void publish(java.util.logging.LogRecord registro) {
+                if (!archivoCreado) {
+                    crearArchivo();
+                    archivoCreado = true;
+                }
+                
                 if (escritor == null) return;
                 
                 try {
-                    String mensaje = "[" + registro.getMillis() + "] - " + registro.getMessage();
+                    String fecha = formatoFecha.format(new Date(registro.getMillis()));
+                    String mensaje = "[" + fecha + "] " + registro.getLevel() + " - " + registro.getMessage();
                     escritor.write(mensaje);
                 }
                 catch (IOException e) {
-                    JOptionPane.showMessageDialog(null, "No se pudo enviar mensajes al registro..", "Error de registro", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(null, "No se pudo enviar mensajes al registro.", "Error de registro", JOptionPane.ERROR_MESSAGE);
                 }
             }
         });

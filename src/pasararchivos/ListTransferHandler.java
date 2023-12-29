@@ -1,7 +1,9 @@
 package pasararchivos;
 
 import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
@@ -18,6 +20,7 @@ public class ListTransferHandler extends TransferHandler {
         this.panel = panel;
     }
     
+    @Override
     public boolean canImport(TransferHandler.TransferSupport soporte) {
         if (!soporte.isDrop()) {
             return false;
@@ -27,6 +30,7 @@ public class ListTransferHandler extends TransferHandler {
         return soporte.isDataFlavorSupported(DataFlavor.javaFileListFlavor);
     }
     
+    @Override
     public boolean importData(TransferHandler.TransferSupport info) {
         if (!info.isDrop()) {
             return false;
@@ -39,6 +43,7 @@ public class ListTransferHandler extends TransferHandler {
         }
         catch (Exception e) {
             e.printStackTrace();
+            PasarArchivos.error(e, "Error de soltar", "Hubo un error al realizar la operación de arrastrar y soltar.");
             return false;
         }
         
@@ -46,9 +51,8 @@ public class ListTransferHandler extends TransferHandler {
         try {        
             archivos = (List<File>) info.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
         }
-        catch (Exception e) {
-            System.err.println("Error");
-            e.printStackTrace();
+        catch (UnsupportedFlavorException | IOException e) {
+            PasarArchivos.error(e, "Error de soltar", "Hubo un error al realizar la operación de arrastrar y soltar.");
             return false;
         }
         
