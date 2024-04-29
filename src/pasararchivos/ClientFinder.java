@@ -36,7 +36,9 @@ public class ClientFinder {
             direcciones = obtenerDireccionesLocales();
         
             sockets = new DatagramSocket[direcciones.length];
+            //System.out.println("Direcciones: ");
             for (int i = 0; i < direcciones.length; i++) {
+                //System.out.println(i + ": " + direcciones[i].getHostAddress());
                 sockets[i] = new DatagramSocket(PUERTO, direcciones[i]);
             }
         }
@@ -143,8 +145,8 @@ public class ClientFinder {
                         packet = new DatagramPacket(contenido, contenido.length, broadcast, PUERTO);
                         socket.send(packet);
                     }
-
-                } catch (IOException ex) {
+                }
+                catch (IOException ex) {
                     ex.printStackTrace();
                     PasarArchivos.log.log(Level.SEVERE, "Error al enviar paquetes de descubrimiento.");
                 }
@@ -165,7 +167,7 @@ public class ClientFinder {
                 EventQueue.invokeLater(() -> {
                     Panel panel = PasarArchivos.panel;
                     if (panel != null && panel.isVisible()) {
-                        PasarArchivos.panel.actualizarLista();
+                        panel.actualizarLista();
                     }
                 });
 
@@ -206,7 +208,7 @@ public class ClientFinder {
                     }
 
                     InetAddress origen = paquete.getAddress();
-                    System.out.println(indice + ": Paquete recibido de " + origen.getHostAddress());
+                    System.out.println("Socket " + indice + ": Paquete recibido de " + origen.toString());
                     
                     // Probablemente hayamos recibido una versión de nuestro paquete en formato
                     // IPv4 mapeado a IPv6 (lo cual pasa con direcciones enlace-local). Descartar.

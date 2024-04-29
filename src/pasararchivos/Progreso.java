@@ -179,35 +179,19 @@ public class Progreso extends javax.swing.JFrame {
         return null;
     }
     
-    public String getMedida(long bytes) {
-        float bytesF = (float) bytes;
+    public static String getMedida(long bytes) {
+        String[] sufijos = new String[] {"B", "KB", "MB", "GB", "TB", "PB", "EB"};
+        
+        double bytesD = (double) bytes;
+        int indice = (int) Math.log10(bytesD);
+        
+        int nivel = Math.min(indice / 3, sufijos.length - 1);
+        String sufijo = sufijos[nivel];
         
         if (bytes < 1000)
             return bytes + " B";
-        else if (bytes < 10000) // 1 - 10 KB
-            return (Math.floor(bytesF / 10) / 100) + " KB";
-        else if (bytes < 100000) // 10 - 100 KB
-            return (Math.floor(bytesF / 100) / 10) + " KB";
-        else if (bytes < 1000000) // 100 KB - 1 MB
-            return (bytes / 1000) + " KB";
-        else if (bytes < 10000000) // 1 - 10 MB
-            return (Math.floor(bytesF / 10000) / 100) + " MB";
-        else if (bytes < 100000000) // 10 - 100 MB
-            return (Math.floor(bytesF / 100000) / 10) + " MB";
-        else if (bytes < 1000000000) // 100 MB - 1 GB
-            return (bytes / 1000000) + " MB";
-        else if (bytes < 10000000000L) // 1 - 10 GB
-            return (Math.floor(bytesF / 10000000) / 100) + " GB";
-        else if (bytes < 100000000000L) // 10 - 100 GB
-            return (Math.floor(bytesF / 100000000) / 10) + " GB";
-        else if (bytes < 1000000000000L) // 100 GB - 1 TB
-            return (bytes / 1000000000) + " GB";
-        else if (bytes < 10000000000000L) // 1 - 10 TB
-            return (Math.floor(bytesF / 10000000000L) / 100) + " TB";
-        else if (bytes < 100000000000000L) // 10 - 100 TB
-            return (Math.floor(bytesF / 100000000000L) / 10) + " TB";
-        else // >= 100 TB
-            return (bytes / 1000000000000L) + " TB";
+        else 
+            return (Math.floor(bytesD / Math.pow(10, -2 + nivel * 3)) / 100) + " " + sufijo;
     }
     /*
     @Override
