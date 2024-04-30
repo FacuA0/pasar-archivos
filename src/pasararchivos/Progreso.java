@@ -182,16 +182,18 @@ public class Progreso extends javax.swing.JFrame {
     public static String getMedida(long bytes) {
         String[] sufijos = new String[] {"B", "KB", "MB", "GB", "TB", "PB", "EB"};
         
-        double bytesD = (double) bytes;
-        int indice = (int) Math.log10(bytesD);
-        
-        int nivel = Math.min(indice / 3, sufijos.length - 1);
-        String sufijo = sufijos[nivel];
-        
-        if (bytes < 1000)
+        if (bytes < 1000) {
             return bytes + " B";
-        else 
+        }
+        else {
+            double bytesD = (double) bytes;
+            int indice = (int) Math.log10(bytesD);
+
+            int nivel = Math.min(indice / 3, sufijos.length - 1);
+            String sufijo = sufijos[nivel];
+            
             return (Math.floor(bytesD / Math.pow(10, -2 + nivel * 3)) / 100) + " " + sufijo;
+        }
     }
     /*
     @Override
