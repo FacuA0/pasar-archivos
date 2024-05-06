@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
@@ -82,7 +83,6 @@ public class ClientFinder {
         synchronized (LOCK) {
             HashMap<String, String> dispositivos = new HashMap();
             
-            int i = 0;
             for (Clientes c: pares.values()) {
                 dispositivos.put(c.direccion.getHostAddress(), c.nombre);
             }
@@ -119,40 +119,78 @@ public class ClientFinder {
             }
         }
         
+        System.out.println("Interfaces:");
+        Iterator<NetworkInterface> iter = NetworkInterface.getNetworkInterfaces().asIterator();
+        while (iter.hasNext()) {
+            NetworkInterface interfaces = iter.next();
+            System.out.println(interfaces.getName());
+            var addrs = interfaces.getInterfaceAddresses();
+            if (addrs.size() > 0) {
+                for (InterfaceAddress direc: addrs) {
+                    System.out.println(direc.toString());
+                }
+                System.out.println("");
+            }
+        }
+        
         /*
         Socket sock = new Socket(InetAddress.getByName("8.8.8.8"), 53);
         InetAddress direccion = sock.getLocalAddress();
         sock.close();
         */
         InetAddress[] dirs = InetAddress.getAllByName(nombreHost);
+        
+        System.out.println("\nDirecciones:");
+        for (InetAddress direc: dirs) {
+            System.out.println(direc.toString());
+        }
+        
         ArrayList<InterfaceAddress> dirs4 = new ArrayList<>();
         
+        
+        iter = NetworkInterface.getNetworkInterfaces().asIterator();
+        
+        while (iter.hasNext()) {
+            NetworkInterface interfaz = iter.next();
+            if (interfaz.isLoopback()) continue;
+                    
+            var addrs = interfaz.getInterfaceAddresses();
+            for (InterfaceAddress dir: addrs) {
+                if (!(dir.getAddress() instanceof Inet4Address)) continue;
+                
+                dirs4.add(dir);
+            }
+        }
+        
+        /*
         for (InetAddress dir: dirs) {
             if (!(dir instanceof Inet4Address)) continue;
             
             NetworkInterface interfaz = NetworkInterface.getByInetAddress(dir);
-
             for (InterfaceAddress dirInterfaz: interfaz.getInterfaceAddresses()) {
                 if (dirInterfaz.getAddress().equals(dir)) {
-                    dirs4.add(dirInterfaz);
+                    //dirs4.add(dirInterfaz);
                 }
             }
         }
+        */
         
         return dirs4.toArray(InterfaceAddress[]::new);
     }
     
     public static class Envio extends Thread {
-        InetAddress broadcast;
+        //InetAddress broadcast;
         
         Envio() {
+            /*
             try {
-                broadcast = InetAddress.getByName("255.255.255.255");
+                //broadcast = InetAddress.getByName("255.255.255.255");
                 //broadcast6 = InetAddress.getByName("ff02::1");
             } catch (UnknownHostException ex) {
                 ex.printStackTrace();
                 PasarArchivos.log.log(Level.SEVERE, "Error al crear dirección de broadcast.");
             }
+            */
         }
         
         @Override
