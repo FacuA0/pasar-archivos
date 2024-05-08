@@ -27,13 +27,13 @@ public class ClientFinder {
     private static final int PUERTO = 9060;
     private static final String LOCK = "lock";
     private static Envio emisor;
-    private static Escucha[] listeners;
     private static EscuchaGlobal escuchaGlobal;
     private static ConcurrentHashMap<String, Clientes> pares;
     private static String nombreHost;
-    private static DatagramSocket[] sockets;
     private static DatagramSocket socketGlobal;
     private static InterfaceAddress[] direcciones;
+    //private static Escucha[] listeners;
+    private static DatagramSocket[] sockets;
     
     public static void init() throws RuntimeException {
         nombreHost = obtenerNombreHost();
@@ -42,15 +42,16 @@ public class ClientFinder {
             direcciones = obtenerDireccionesLocales();
         
             socketGlobal = new DatagramSocket(PUERTO);
-            System.out.println("\nDirección global: " + socketGlobal.getLocalAddress());
-            System.out.println("Dirección global getHostAddres(): " + socketGlobal.getLocalAddress().getHostAddress());
-            
+            //System.out.println("\nDirección global: " + socketGlobal.getLocalAddress());
+            //System.out.println("Dirección global getHostAddres(): " + socketGlobal.getLocalAddress().getHostAddress());
+            /*
             //sockets = new DatagramSocket[direcciones.length];
             System.out.println("Direcciones: ");
             for (int i = 0; i < direcciones.length; i++) {
                 System.out.println(i + ": " + direcciones[i].toString());
                 //sockets[i] = new DatagramSocket(PUERTO, direcciones[i]);
             }
+            */
         }
         catch (SocketException e) {
             throw new RuntimeException(e);
@@ -108,7 +109,8 @@ public class ClientFinder {
     }
     
     private static InterfaceAddress[] obtenerDireccionesLocales() throws IOException {
-        if (nombreHost == null) {
+        /*
+        if (nombreHost == null && false) {
             InetAddress direccion = obtenerDireccionExterna();
             NetworkInterface interfaz = NetworkInterface.getByInetAddress(direccion);
             
@@ -118,38 +120,38 @@ public class ClientFinder {
                 }
             }
         }
+        */
         
-        System.out.println("Interfaces:");
-        Iterator<NetworkInterface> iter = NetworkInterface.getNetworkInterfaces().asIterator();
-        while (iter.hasNext()) {
-            NetworkInterface interfaces = iter.next();
-            System.out.println(interfaces.getName());
-            var addrs = interfaces.getInterfaceAddresses();
-            if (addrs.size() > 0) {
-                for (InterfaceAddress direc: addrs) {
-                    System.out.println(direc.toString());
+        boolean mostrarInterfaces = false;
+        if (mostrarInterfaces) {
+            System.out.println("Interfaces:");
+            Iterator<NetworkInterface> iter = NetworkInterface.getNetworkInterfaces().asIterator();
+            while (iter.hasNext()) {
+                NetworkInterface interfaces = iter.next();
+                System.out.println(interfaces.getName());
+                var addrs = interfaces.getInterfaceAddresses();
+                if (!addrs.isEmpty()) {
+                    for (InterfaceAddress direc: addrs) {
+                        System.out.println(direc.toString());
+                    }
+                    System.out.println("");
                 }
-                System.out.println("");
+            }
+
+            InetAddress[] dirs = InetAddress.getAllByName(nombreHost);
+
+            System.out.println("\nDirecciones:");
+            for (InetAddress direc: dirs) {
+                System.out.println(direc.toString());
             }
         }
         
-        /*
-        Socket sock = new Socket(InetAddress.getByName("8.8.8.8"), 53);
-        InetAddress direccion = sock.getLocalAddress();
-        sock.close();
-        */
-        InetAddress[] dirs = InetAddress.getAllByName(nombreHost);
-        
-        System.out.println("\nDirecciones:");
-        for (InetAddress direc: dirs) {
-            System.out.println(direc.toString());
-        }
+        long t1 = System.nanoTime();
         
         ArrayList<InterfaceAddress> dirs4 = new ArrayList<>();
+        Iterator<NetworkInterface> iter = NetworkInterface.getNetworkInterfaces().asIterator();
         
-        
-        iter = NetworkInterface.getNetworkInterfaces().asIterator();
-        
+        long t2 = System.nanoTime();
         while (iter.hasNext()) {
             NetworkInterface interfaz = iter.next();
             if (interfaz.isLoopback()) continue;
@@ -161,6 +163,9 @@ public class ClientFinder {
                 dirs4.add(dir);
             }
         }
+        
+        System.out.println(System.nanoTime() - t1);
+        System.out.println(System.nanoTime() - t2);
         
         /*
         for (InetAddress dir: dirs) {
@@ -196,10 +201,19 @@ public class ClientFinder {
         @Override
         public void run() {
             byte[] contenido = ("Usuario:" + nombreHost).getBytes();
+            
+            long refrescarDirecciones = System.currentTimeMillis();
 
             while (true) {
+                long t1 = System.currentTimeMillis();
+                
                 DatagramPacket packet;
                 try {
+                    if (System.currentTimeMillis() - refrescarDirecciones >= 12000) {
+                        refrescarDirecciones = System.currentTimeMillis();
+                        direcciones = obtenerDireccionesLocales();
+                    }
+                    
                     System.out.println("Enviando paquetes");
                     for (InterfaceAddress direccion: direcciones) {
                         packet = new DatagramPacket(contenido, contenido.length, direccion.getBroadcast(), PUERTO);
@@ -211,31 +225,41 @@ public class ClientFinder {
                     PasarArchivos.log.log(Level.SEVERE, "Error al enviar paquetes de descubrimiento.");
                 }
 
-                // Remover pares viejos no renovados
-                long limite = 6000;
-                synchronized (LOCK) {
-                    for (String clave: pares.keySet()) {
-                        long ahora = new Date().getTime();
-                        long antes = pares.get(clave).fechaEmision;
-
-                        if (ahora - antes > limite) {
-                            pares.remove(clave);
-                        }
-                    }
-                }
-
-                EventQueue.invokeLater(() -> {
-                    Panel panel = PasarArchivos.panel;
-                    if (panel != null && panel.isVisible()) {
-                        panel.actualizarLista();
-                    }
-                });
+                removerClientesAntiguos();
+                actualizarLista();
 
                 try {
-                    Thread.sleep(3000);
+                    long t2 = System.currentTimeMillis();
+                    System.out.println("sleep: " + Math.max(0, 3000 - (t2 - t1)));
+                    Thread.sleep(Math.max(0, 3000 - (t2 - t1)));
                 }
                 catch (InterruptedException e) {}
             }
+        }
+        
+        private void removerClientesAntiguos() {
+            long limite = 6000;
+            synchronized (LOCK) {
+                
+                // Remover pares viejos no renovados
+                long ahora = new Date().getTime();
+                for (String clave: pares.keySet()) {
+                    long antes = pares.get(clave).fechaEmision;
+
+                    if (ahora - antes > limite) {
+                        pares.remove(clave);
+                    }
+                }
+            }
+        }
+        
+        private void actualizarLista() {
+            EventQueue.invokeLater(() -> {
+                Panel panel = PasarArchivos.panel;
+                if (panel != null && panel.isVisible()) {
+                    panel.actualizarLista();
+                }
+            });
         }
     }
     
@@ -268,7 +292,8 @@ public class ClientFinder {
                     }
 
                     InetAddress origen = paquete.getAddress();
-                    System.out.println("Socket " + indice + " (" + sockets[indice].getLocalAddress().toString() + "): Paquete recibido de " + origen.toString() + " - \"" + new String(datos) + "\"");
+                    String nombreSocket = "Socket " + indice + " (" + sockets[indice].getLocalAddress().toString() + ")";
+                    System.out.println(nombreSocket + ": Paquete recibido de " + origen.toString() + " - \"" + new String(datos).trim() + "\"");
                     
                     // Probablemente hayamos recibido una versión de nuestro paquete en formato
                     // IPv4 mapeado a IPv6 (lo cual pasa con direcciones enlace-local). Descartar.
@@ -323,7 +348,7 @@ public class ClientFinder {
                     }
 
                     InetAddress origen = paquete.getAddress();
-                    System.out.println("Socket global (" + socketGlobal.getLocalAddress().toString() + "): Paquete recibido de " + origen.toString() + " - \"" + new String(datos) + "\"");
+                    System.out.println("Socket global: Paquete recibido de " + origen.toString() + " - \"" + new String(datos) + "\"");
                     
                     // Probablemente hayamos recibido una versión de nuestro paquete en formato
                     // IPv4 mapeado a IPv6 (lo cual pasa con direcciones enlace-local). Descartar.
