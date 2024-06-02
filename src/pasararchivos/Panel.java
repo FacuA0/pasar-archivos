@@ -4,6 +4,7 @@ import com.formdev.flatlaf.*;
 import java.awt.Toolkit;
 import java.awt.event.WindowEvent;
 import java.io.File;
+import java.net.InetAddress;
 import java.util.HashMap;
 import javax.swing.DefaultListModel;
 import javax.swing.DropMode;
@@ -19,7 +20,7 @@ import javax.swing.plaf.nimbus.NimbusLookAndFeel;
 public class Panel extends javax.swing.JFrame {
 
     DefaultListModel<String> modeloArchivos, modeloDispositivos;
-    HashMap<String, String> dispositivos;
+    HashMap<InetAddress, String> dispositivos;
     
     /**
      * Creates new form Panel
@@ -55,20 +56,20 @@ public class Panel extends javax.swing.JFrame {
     }
     
     public void actualizarLista() {
-        HashMap<String, String> nuevo = ClientFinder.getDispositivos();
+        HashMap<InetAddress, String> nuevo = ClientFinder.getDispositivos();
         
         // Añadir elementos 
-        for (String clave: nuevo.keySet()) {
+        for (InetAddress clave: nuevo.keySet()) {
             if (!dispositivos.containsKey(clave)) {
-                String nombre = nuevo.get(clave) + " (" + clave + ")";
+                String nombre = nuevo.get(clave) + " (" + clave.getHostAddress() + ")";
                 modeloDispositivos.addElement(nombre);
             }
         }
         
         // Quitar elementos no existentes
-        for (String clave: dispositivos.keySet()) {
+        for (InetAddress clave: dispositivos.keySet()) {
             if (!nuevo.containsKey(clave)) {
-                String nombre = dispositivos.get(clave) + " (" + clave + ")";
+                String nombre = dispositivos.get(clave) + " (" + clave.getHostAddress() + ")";
                 modeloDispositivos.removeElement(nombre);
             }
         }
@@ -229,19 +230,23 @@ public class Panel extends javax.swing.JFrame {
             return;
         }
         
-        String[] archivos = new String[modeloArchivos.size()];
-        for (int i = 0; i < archivos.length; i++) {
-            archivos[i] = (String) modeloArchivos.get(i);
-        }
+        String[] archivos = (String[]) modeloArchivos.toArray();
         
-        String direccion = "";
+        InetAddress direccion = null;
         String seleccion = (String) modeloDispositivos.get(listaDispositivos.getSelectedIndex());
-        for (String clave: dispositivos.keySet()) {
-            String nombre = dispositivos.get(clave) + " (" + clave + ")";
+        
+        for (InetAddress clave: dispositivos.keySet()) {
+            String nombre = dispositivos.get(clave) + " (" + clave.getHostAddress() + ")";
             if (nombre.equals(seleccion)) {
                 direccion = clave;
             }
         }
+        
+        if (direccion == null) {
+            JOptionPane.showMessageDialog(this, "No se seleccionó nigún dispositivo.", "No hay selección", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+        
         Transferencia.transferir(archivos, direccion);
     }//GEN-LAST:event_btnTransferirActionPerformed
 

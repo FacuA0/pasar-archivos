@@ -80,15 +80,16 @@ public class ClientFinder {
         }*/
     }
     
-    public static HashMap<String, String> getDispositivos() {
-        synchronized (LOCK) {
-            HashMap<String, String> dispositivos = new HashMap();
-            
+    public static HashMap<InetAddress, String> getDispositivos() {
+        HashMap<InetAddress, String> dispositivos = new HashMap();
+        
+        synchronized (LOCK) {    
             for (Clientes c: pares.values()) {
-                dispositivos.put(c.direccion.getHostAddress(), c.nombre);
+                dispositivos.put(c.direccion, c.nombre);
             }
-            return dispositivos;
         }
+        
+        return dispositivos;
     }
     
     private static String obtenerNombreHost() {
@@ -184,9 +185,11 @@ public class ClientFinder {
     }
     
     public static class Envio extends Thread {
+        long refrescarDirecciones;
         //InetAddress broadcast;
         
         Envio() {
+            setName("Hilo-Envio");
             /*
             try {
                 //broadcast = InetAddress.getByName("255.255.255.255");
@@ -201,19 +204,16 @@ public class ClientFinder {
         @Override
         public void run() {
             byte[] contenido = ("Usuario:" + nombreHost).getBytes();
+            DatagramPacket packet;
             
-            long refrescarDirecciones = System.currentTimeMillis();
+            refrescarDirecciones = System.currentTimeMillis();
 
             while (true) {
                 long t1 = System.currentTimeMillis();
                 
-                DatagramPacket packet;
+                renovarDirecciones();
+                
                 try {
-                    if (System.currentTimeMillis() - refrescarDirecciones >= 12000) {
-                        refrescarDirecciones = System.currentTimeMillis();
-                        direcciones = obtenerDireccionesLocales();
-                    }
-                    
                     System.out.println("Enviando paquetes");
                     for (InterfaceAddress direccion: direcciones) {
                         packet = new DatagramPacket(contenido, contenido.length, direccion.getBroadcast(), PUERTO);
@@ -226,7 +226,7 @@ public class ClientFinder {
                 }
 
                 removerClientesAntiguos();
-                actualizarLista();
+                actualizarInterfaz();
 
                 try {
                     long t2 = System.currentTimeMillis();
@@ -237,12 +237,25 @@ public class ClientFinder {
             }
         }
         
+        private void renovarDirecciones() {
+            try {
+                if (System.currentTimeMillis() - refrescarDirecciones >= 12000) {
+                    refrescarDirecciones = System.currentTimeMillis();
+                    direcciones = obtenerDireccionesLocales();
+                }
+            }
+            catch (IOException e) {
+                e.printStackTrace();
+                PasarArchivos.log.log(Level.SEVERE, "Error al renovar direcciones de interfaz.");
+            }
+        }
+        
+        // Remover pares viejos no renovados
         private void removerClientesAntiguos() {
-            long limite = 6000;
+            long limite = 15000;
             synchronized (LOCK) {
-                
-                // Remover pares viejos no renovados
                 long ahora = new Date().getTime();
+                
                 for (String clave: pares.keySet()) {
                     long antes = pares.get(clave).fechaEmision;
 
@@ -253,16 +266,18 @@ public class ClientFinder {
             }
         }
         
-        private void actualizarLista() {
+        private void actualizarInterfaz() {
             EventQueue.invokeLater(() -> {
                 Panel panel = PasarArchivos.panel;
                 if (panel != null && panel.isVisible()) {
                     panel.actualizarLista();
+                    panel.hayInternet(direcciones.length > 0);
                 }
             });
         }
     }
     
+    /*
     public static class Escucha extends Thread {
         int indice;
         
@@ -324,8 +339,13 @@ public class ClientFinder {
             }
         }
     }
+*/
     
     public static class EscuchaGlobal extends Thread {
+        public EscuchaGlobal() {
+            setName("Hilo-EscuchaGlobal");
+        }
+        
         @Override
         public void run() {
             while (true) {

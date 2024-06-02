@@ -10,7 +10,6 @@ import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.logging.Level;
@@ -32,23 +31,12 @@ public class Transferencia {
         panelProgreso = new Progreso();
     }
     
-    public static void transferir(String[] rutas, String direccion) {
-        InetAddress ip;
-        try {
-            ip = InetAddress.getByName(direccion);
-        } catch (UnknownHostException ex) {
-            String titulo = "Error de IP";
-            String mensaje = "Hubo un error parseando la dirección IP del destino.";
-            PasarArchivos.log.log(Level.SEVERE, "{0}: {1}", new String[] {titulo, mensaje});
-            JOptionPane.showMessageDialog(PasarArchivos.panel, mensaje, titulo, JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-        
+    public static void transferir(String[] rutas, InetAddress direccion) {
         File[] archivos = new File[rutas.length];
         for (int i = 0; i < rutas.length; i++) {
             archivos[i] = new File(rutas[i]);
         }
-        Elementos e = new Elementos(ip, archivos);
+        Elementos e = new Elementos(direccion, archivos);
 
         Envio enviar = new Envio(e);
         enviar.start();
@@ -63,6 +51,8 @@ public class Transferencia {
         ServerSocket server;
         
         Servidor() throws RuntimeException {
+            setName("Hilo-Servidor");
+            
             try {
                 server = new ServerSocket(PUERTO);
             }
