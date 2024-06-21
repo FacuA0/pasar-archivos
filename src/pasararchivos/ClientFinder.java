@@ -165,8 +165,8 @@ public class ClientFinder {
             }
         }
         
-        System.out.println(System.nanoTime() - t1);
-        System.out.println(System.nanoTime() - t2);
+        //System.out.println(System.nanoTime() - t1);
+        //System.out.println(System.nanoTime() - t2);
         
         /*
         for (InetAddress dir: dirs) {
@@ -368,7 +368,7 @@ public class ClientFinder {
                     }
 
                     InetAddress origen = paquete.getAddress();
-                    System.out.println("Socket global: Paquete recibido de " + origen.toString() + " - \"" + new String(datos) + "\"");
+                    //System.out.println("Socket global: Paquete recibido de " + origen.toString() + " - \"" + new String(datos) + "\"");
                     
                     // Probablemente hayamos recibido una versión de nuestro paquete en formato
                     // IPv4 mapeado a IPv6 (lo cual pasa con direcciones enlace-local). Descartar.

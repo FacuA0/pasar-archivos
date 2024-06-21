@@ -188,6 +188,7 @@ public class Transferencia {
 
                     long time = System.currentTimeMillis();
 
+                    long transcurrido;
                     long progreso = 0;
                     long velocidad = 0;
 
@@ -202,8 +203,9 @@ public class Transferencia {
                         stream.write(bytes, 0, len);
 
                         // Cada cierto tiempo, actualizar la ventana de progreso
-                        if (System.currentTimeMillis() - time > 16) {
-                            panelProgreso.setDatos(idPanel, progreso, largo, velocidad * 62);
+                        transcurrido = System.currentTimeMillis() - time;
+                        if (transcurrido > 16) {
+                            panelProgreso.setDatos(idPanel, progreso, largo, velocidad * 1000 / transcurrido);
                             time = System.currentTimeMillis();
                             velocidad = 0;
                         }
@@ -356,7 +358,7 @@ public class Transferencia {
                     long progreso = 0;
                     boolean fin = false;
 
-                    long time = System.currentTimeMillis();
+                    long time = System.currentTimeMillis(), transcurrido = 0;
                     long velocidad = 0;
                     byte[] bytes = new byte[4096];
 
@@ -368,8 +370,9 @@ public class Transferencia {
                         fileIO.write(bytes, 0, len);
 
                         // Cada cierto tiempo, actualizar la ventana de progreso.
-                        if (System.currentTimeMillis() - time > 16) {
-                            panelProgreso.setDatos(idPanel, progreso, longitud, velocidad * 62);
+                        transcurrido = System.currentTimeMillis() - time;
+                        if (transcurrido > 16) {
+                            panelProgreso.setDatos(idPanel, progreso, longitud, velocidad * 1000 / transcurrido);
                             time = System.currentTimeMillis();
                             velocidad = 0;
                         }

@@ -230,7 +230,10 @@ public class Panel extends javax.swing.JFrame {
             return;
         }
         
-        String[] archivos = (String[]) modeloArchivos.toArray();
+        String[] archivos = new String[modeloArchivos.size()];
+        for (int i = 0; i < modeloArchivos.size(); i++) {
+            archivos[i] = modeloArchivos.get(i);
+        }
         
         InetAddress direccion = null;
         String seleccion = (String) modeloDispositivos.get(listaDispositivos.getSelectedIndex());
