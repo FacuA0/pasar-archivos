@@ -82,8 +82,9 @@ public class PasarArchivos {
             error.printStackTrace();
         }
         
-        String logError = error != null ? error.toString() : "No error.";
-        log.log(Level.SEVERE, "{0}: {1} - {2}", new Object[] {titulo, mensaje, logError});
+        String logError = error != null ? error.toString() : "No exception.";
+        String logMensaje = titulo + ": " + mensaje + " - " + logError;
+        log.log(Level.SEVERE, logMensaje);
         
         int tipoError = JOptionPane.ERROR_MESSAGE;
         JOptionPane.showMessageDialog(panel, mensaje, titulo, tipoError);
