@@ -11,6 +11,7 @@ import javax.swing.JSeparator;
  * @author Facu
  */
 public class Progreso extends javax.swing.JFrame {
+    public static final String LOCK = "lock";
     public ArrayList<Datos> transferencias;
     private BoxLayout layout;
 
@@ -41,13 +42,15 @@ public class Progreso extends javax.swing.JFrame {
     public int agregarTransferencia(Transferencia.Transferidor hilo, Modo modo, InetAddress direccion) {
         Datos datos = new Datos(hilo, modo, direccion);
         
-        transferencias.add(datos);
-        actualizarTitulo();
-        actualizarBarras();
-        
-        if (transferencias.size() == 1) {
-            setVisible(true);
-            toFront();
+        synchronized (LOCK) {
+            transferencias.add(datos);
+            actualizarTitulo();
+            actualizarBarras();
+
+            if (transferencias.size() == 1) {
+                setVisible(true);
+                toFront();
+            }
         }
         
         int hash = datos.hashCode();
@@ -55,16 +58,18 @@ public class Progreso extends javax.swing.JFrame {
     }
     
     public void removerTransferencia(int idDatos) {
-        transferencias.remove(getDatos(idDatos));
-        
-        if (transferencias.isEmpty()) {
-            setVisible(false);
+        synchronized (LOCK) {
+            transferencias.remove(getDatos(idDatos));
+
+            if (transferencias.isEmpty()) {
+                setVisible(false);
+            }
+            else {
+                actualizarBarras();
+            }
+
+            actualizarTitulo();
         }
-        else {
-            actualizarBarras();
-        }
-        
-        actualizarTitulo();
     }
     
     private void actualizarTitulo() {
