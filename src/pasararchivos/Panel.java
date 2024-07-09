@@ -87,7 +87,8 @@ public class Panel extends javax.swing.JFrame {
         modeloArchivos.clear();
 
         for (File archivo: archivos) {
-            modeloArchivos.addElement(archivo.getAbsolutePath());
+            String ruta = archivo.getParent() != null ? archivo.getParent() : "nulo";
+            modeloArchivos.addElement(archivo.getName() + " (" + ruta + ")");
         }
 
         habilitarBoton();
@@ -168,7 +169,7 @@ public class Panel extends javax.swing.JFrame {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(12, 12, 12)
+                .addGap(8, 8, 8)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(labelDispositivos)
@@ -181,14 +182,14 @@ public class Panel extends javax.swing.JFrame {
                                 .addComponent(btnTransferir)
                                 .addGap(8, 8, 8)
                                 .addComponent(salir))
-                            .addComponent(scrollDispositivos, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 376, Short.MAX_VALUE)
+                            .addComponent(scrollDispositivos, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 384, Short.MAX_VALUE)
                             .addComponent(scrollArchivos, javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(btnSeleccionar)
                                     .addComponent(texto))
                                 .addGap(0, 0, Short.MAX_VALUE)))
-                        .addGap(12, 12, 12))))
+                        .addGap(8, 8, 8))))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -202,13 +203,13 @@ public class Panel extends javax.swing.JFrame {
                 .addGap(8, 8, 8)
                 .addComponent(labelDispositivos)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(scrollDispositivos, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 8, Short.MAX_VALUE)
+                .addComponent(scrollDispositivos, javax.swing.GroupLayout.DEFAULT_SIZE, 93, Short.MAX_VALUE)
+                .addGap(8, 8, 8)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnTransferir)
                     .addComponent(salir)
                     .addComponent(labelNoIntenet))
-                .addGap(12, 12, 12))
+                .addGap(8, 8, 8))
         );
 
         pack();

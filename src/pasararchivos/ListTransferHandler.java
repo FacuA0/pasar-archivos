@@ -5,8 +5,6 @@ import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import javax.swing.DefaultListModel;
-import javax.swing.JList;
 import javax.swing.TransferHandler;
 
 /**
@@ -33,17 +31,6 @@ public class ListTransferHandler extends TransferHandler {
     @Override
     public boolean importData(TransferHandler.TransferSupport info) {
         if (!info.isDrop()) {
-            return false;
-        }
-        
-        DefaultListModel modelo;
-        try {
-            JList lista = (JList) info.getComponent();
-            modelo = (DefaultListModel) lista.getModel();
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-            PasarArchivos.error(e, "Error de soltar", "Hubo un error al realizar la operación de arrastrar y soltar.");
             return false;
         }
         
