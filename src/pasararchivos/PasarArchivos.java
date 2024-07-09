@@ -47,7 +47,7 @@ public class PasarArchivos {
         catch (RuntimeException e) {
             String mensaje;
             if (e.getCause() instanceof BindException) {
-                mensaje = "Hubo un error al iniciar la funcionalidad de descubrir otros dispositivos. Probablemente haya otra instancia de la aplicación abierta en segundo plano.";
+                mensaje = "Hay otra instancia de la aplicación abierta en segundo plano. Cerrando aplicación.";
             }
             else {
                 mensaje = "Hubo un error al iniciar la funcionalidad de descubrir otros dispositivos. Cerrando aplicación.";
