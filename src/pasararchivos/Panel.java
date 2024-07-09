@@ -21,6 +21,7 @@ public class Panel extends javax.swing.JFrame {
 
     DefaultListModel<String> modeloArchivos, modeloDispositivos;
     HashMap<InetAddress, String> dispositivos;
+    File[] archivos;
     
     /**
      * Creates new form Panel
@@ -49,6 +50,7 @@ public class Panel extends javax.swing.JFrame {
         chooser.setMultiSelectionEnabled(true);
         
         dispositivos = new HashMap<>();
+        archivos = new File[0];
     }
     
     public void hayInternet(boolean hay) {
@@ -79,6 +81,16 @@ public class Panel extends javax.swing.JFrame {
     
     public void habilitarBoton() {
         btnTransferir.setEnabled(listaDispositivos.getSelectedIndex() != -1 && !modeloArchivos.isEmpty());
+    }
+    
+    public void actualizarArchivos() {
+        modeloArchivos.clear();
+
+        for (File archivo: archivos) {
+            modeloArchivos.addElement(archivo.getAbsolutePath());
+        }
+
+        habilitarBoton();
     }
 
     /**
@@ -210,15 +222,9 @@ public class Panel extends javax.swing.JFrame {
         int resultado = chooser.showDialog(btnSeleccionar, "Seleccionar");
         
         if (resultado == JFileChooser.APPROVE_OPTION) {
-            File[] archivos = chooser.getSelectedFiles();
+            archivos = chooser.getSelectedFiles();
             
-            modeloArchivos.clear();
-            
-            for (File archivo: archivos) {
-                modeloArchivos.addElement(archivo.getAbsolutePath());
-            }
-            
-            habilitarBoton();
+            actualizarArchivos();
         }
     }//GEN-LAST:event_btnSeleccionarActionPerformed
 
@@ -228,11 +234,6 @@ public class Panel extends javax.swing.JFrame {
         // Cancelar la transferencia
         if (res != JOptionPane.OK_OPTION) {
             return;
-        }
-        
-        String[] archivos = new String[modeloArchivos.size()];
-        for (int i = 0; i < modeloArchivos.size(); i++) {
-            archivos[i] = modeloArchivos.get(i);
         }
         
         InetAddress direccion = null;

@@ -33,11 +33,7 @@ public class Transferencia {
         panelProgreso = new Progreso();
     }
     
-    public static void transferir(String[] rutas, InetAddress direccion) {
-        File[] archivos = new File[rutas.length];
-        for (int i = 0; i < rutas.length; i++) {
-            archivos[i] = new File(rutas[i]);
-        }
+    public static void transferir(File[] archivos, InetAddress direccion) {
         Elementos e = new Elementos(direccion, archivos);
 
         Envio enviar = new Envio(e);

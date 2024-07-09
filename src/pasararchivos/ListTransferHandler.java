@@ -56,13 +56,12 @@ public class ListTransferHandler extends TransferHandler {
             return false;
         }
         
-        modelo.clear();
-        
-        for (File archivo: archivos) {
-            modelo.add(modelo.size(), archivo.getAbsolutePath());
+        panel.archivos = new File[archivos.size()];
+        for (int i = 0; i < archivos.size(); i++) {
+            panel.archivos[i] = archivos.get(i);
         }
         
-        panel.habilitarBoton();
+        panel.actualizarArchivos();
         
         return true;
     }
