@@ -260,7 +260,7 @@ public class Transferencia {
             try {
                 // Recibir cantidad de archivos a transferir
                 int cantidad = stream.readUnsignedShort();
-
+                
                 for (int ind = 0; ind < cantidad; ind++) {
 
                     // Recibir longitud del nombre de archivo
@@ -320,7 +320,8 @@ public class Transferencia {
 
                     // Empezar a guardar el archivo
                     while (true) {
-                        int len = stream.read(bytes);
+                        int len = (int) Math.min(longitud - progreso, bytes.length);
+                        stream.readFully(bytes, 0, len);
                         fileIO.write(bytes, 0, len);
                         
                         progreso += len;
@@ -334,7 +335,9 @@ public class Transferencia {
                             velocidad = 0;
                         }
                         
-                        if (cerrar || progreso >= longitud) break;
+                        if (cerrar || progreso == longitud) break;
+                        
+                        if (progreso > longitud) throw new IOException("Se recibieron más bytes de lo debido.");
                     }
                     
                     operacion = false;
@@ -352,10 +355,6 @@ public class Transferencia {
             catch (EOFException e) {
                 System.out.println("El usuario canceló la transferencia.");
                 PasarArchivos.mostrarDialogo("Transferencia cancelada", "El destinatario decidió cancelar la tansferencia.");
-                
-                if (operacion) {
-                    archivo.delete();
-                }
             }
             catch (IOException ex) {
                 String mensaje = "Hubo un error de entrada/salida al recibir el archivo.";
@@ -364,6 +363,11 @@ public class Transferencia {
             catch (Exception e) {
                 String mensaje = "Hubo un error al recibir el archivo.";
                 PasarArchivos.error(e, "Error de I/O", mensaje);
+            }
+            finally {
+                if (operacion) {
+                    archivo.delete();
+                }
             }
 
             panelProgreso.removerTransferencia(idPanel);
