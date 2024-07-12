@@ -31,9 +31,9 @@ public class ClientFinder {
     private static ConcurrentHashMap<String, Clientes> pares;
     private static String nombreHost;
     private static DatagramSocket socketGlobal;
-    private static InterfaceAddress[] direcciones;
+    private static DireccionInterfaz[] direcciones;
     //private static Escucha[] listeners;
-    private static DatagramSocket[] sockets;
+    //private static DatagramSocket[] sockets;
     
     public static void init() throws RuntimeException {
         nombreHost = obtenerNombreHost();
@@ -109,7 +109,7 @@ public class ClientFinder {
         return direccion;
     }
     
-    private static InterfaceAddress[] obtenerDireccionesLocales() throws IOException {
+    private static DireccionInterfaz[] obtenerDireccionesLocales() throws IOException {
         /*
         if (nombreHost == null && false) {
             InetAddress direccion = obtenerDireccionExterna();
@@ -147,12 +147,12 @@ public class ClientFinder {
             }
         }
         
-        long t1 = System.nanoTime();
+        //long t1 = System.nanoTime();
         
-        ArrayList<InterfaceAddress> dirs4 = new ArrayList<>();
+        ArrayList<DireccionInterfaz> dirs4 = new ArrayList<>();
         Iterator<NetworkInterface> iter = NetworkInterface.getNetworkInterfaces().asIterator();
         
-        long t2 = System.nanoTime();
+        //long t2 = System.nanoTime();
         while (iter.hasNext()) {
             NetworkInterface interfaz = iter.next();
             if (interfaz.isLoopback()) continue;
@@ -161,7 +161,7 @@ public class ClientFinder {
             for (InterfaceAddress dir: addrs) {
                 if (!(dir.getAddress() instanceof Inet4Address)) continue;
                 
-                dirs4.add(dir);
+                dirs4.add(new DireccionInterfaz(dir, interfaz.getIndex()));
             }
         }
         
@@ -181,7 +181,7 @@ public class ClientFinder {
         }
         */
         
-        return dirs4.toArray(InterfaceAddress[]::new);
+        return dirs4.toArray(DireccionInterfaz[]::new);
     }
     
     public static class Envio extends Thread {
@@ -215,10 +215,15 @@ public class ClientFinder {
                 
                 try {
                     System.out.println("Enviando paquetes");
-                    for (InterfaceAddress direccion: direcciones) {
-                        packet = new DatagramPacket(contenido, contenido.length, direccion.getBroadcast(), PUERTO);
+                    
+                    for (DireccionInterfaz direccion: direcciones) {
+                        InetAddress destino = obtenerDestino(direccion);
+                        
+                        System.out.println("- Enviando a " + destino + " (" + direccion.getAddress() + ")");
+                        packet = new DatagramPacket(contenido, contenido.length, destino, PUERTO);
                         socketGlobal.send(packet);
                     }
+                    System.out.println();
                 }
                 catch (IOException ex) {
                     ex.printStackTrace();
@@ -248,6 +253,17 @@ public class ClientFinder {
                 e.printStackTrace();
                 PasarArchivos.log.log(Level.SEVERE, "Error al renovar direcciones de interfaz.");
             }
+        }
+        
+        // Si es una IPv4 normal, enviarlo a su destino broadcast.
+        // Si es de enlace-local, mapearlo a IPv6 para incluir el ámbito destino.
+        private InetAddress obtenerDestino(DireccionInterfaz direccion) throws UnknownHostException {
+            byte[] broadcastMapeado = new byte[] {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, -87, -2, -1, -1};
+            
+            if (direccion.getAddress().isLinkLocalAddress() && direccion.ambito != -1) {
+                return Inet6Address.getByAddress(null, broadcastMapeado, direccion.ambito);
+            }
+            else return direccion.getBroadcast();
         }
         
         // Remover pares viejos no renovados
@@ -368,18 +384,26 @@ public class ClientFinder {
                     }
 
                     InetAddress origen = paquete.getAddress();
-                    //System.out.println("Socket global: Paquete recibido de " + origen.toString() + " - \"" + new String(datos) + "\"");
+                    System.out.println("Socket global: Paquete recibido de " + origen.toString() + " - \"" + new String(datos).trim() + "\"");
                     
                     // Probablemente hayamos recibido una versión de nuestro paquete en formato
-                    // IPv4 mapeado a IPv6 (lo cual pasa con direcciones enlace-local). Descartar.
+                    // IPv4 mapeado a IPv6 (lo cual pasa con direcciones enlace-local).
+                    // Previamente se descartaba. Ahora se extrae la versión IPv4 de la dirección.
                     if (origen instanceof Inet6Address) {
-                        continue;
+                        if (!Arrays.equals(origen.getAddress(), 0, 12, new byte[] {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1}, 0, 12)) {
+                            continue;
+                        }
+                        
+                        byte[] origenV4 = new byte[4];
+                        System.arraycopy(origen.getAddress(), 12, origenV4, 0, 4);
+                        
+                        origen = InetAddress.getByAddress(origenV4);
                     }
 
                     // Recibimos nuestro propio paquete. Descartar.
                     boolean duplicado = false;
-                    for (InterfaceAddress direccion: direcciones) {
-                        if (origen.getHostAddress().equals(direccion.getAddress().getHostAddress())) {
+                    for (DireccionInterfaz direccion: direcciones) {
+                        if (origen.equals(direccion.getAddress())) {
                             duplicado = true;
                         }
                     }
@@ -403,6 +427,24 @@ public class ClientFinder {
                     PasarArchivos.log.log(Level.SEVERE, "Error al esperar paquete.");
                 }
             }
+        }
+    }
+    
+    public static class DireccionInterfaz {
+        public InterfaceAddress direccion;
+        public int ambito;
+        
+        public DireccionInterfaz(InterfaceAddress direccion, int ambito) {
+            this.direccion = direccion;
+            this.ambito = ambito;
+        }
+        
+        public InetAddress getAddress() {
+            return direccion.getAddress();
+        }
+        
+        public InetAddress getBroadcast() {
+            return direccion.getBroadcast();
         }
     }
     
