@@ -11,6 +11,7 @@ import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.BindException;
 import java.net.InetAddress;
 import java.text.SimpleDateFormat;
@@ -78,16 +79,15 @@ public class PasarArchivos {
     }
     
     public static void error(Exception error, String titulo, String mensaje) {
-        if (error != null) {
-            error.printStackTrace();
-        }
-        
-        String logError = error != null ? error.toString() : "No exception.";
-        String logMensaje = titulo + ": " + mensaje + " - " + logError;
-        log.log(Level.SEVERE, logMensaje);
+        logError(error, titulo, mensaje);
         
         int tipoError = JOptionPane.ERROR_MESSAGE;
         JOptionPane.showMessageDialog(panel, mensaje, titulo, tipoError);
+    }
+    
+    public static void logError(Exception error, String titulo, String mensaje) {
+        String logMensaje = titulo + ": " + mensaje;
+        log.log(Level.SEVERE, logMensaje, error);
     }
     
     private static void definirRegistro() {
@@ -145,10 +145,23 @@ public class PasarArchivos {
                 
                 if (escritor == null) return;
                 
+                Throwable error = registro.getThrown();
+                Level nivel = registro.getLevel();
+                boolean grave = nivel == Level.SEVERE;
+                
+                String fecha = formatoFecha.format(new Date(registro.getMillis()));
+                String prefijo = "[" + fecha + "] " + nivel;
+                
+                String mensaje = registro.getMessage();
+                String errorCorto = error != null && !grave ? " - " + error : "";
+                String linea = prefijo + " - " + mensaje + errorCorto + "\n";
+                
                 try {
-                    String fecha = formatoFecha.format(new Date(registro.getMillis()));
-                    String mensaje = "[" + fecha + "] " + registro.getLevel() + " - " + registro.getMessage();
-                    escritor.write(mensaje);
+                    escritor.write(linea);
+                    
+                    if (error != null && grave) {
+                        error.printStackTrace(new PrintWriter(escritor, true));
+                    }
                 }
                 catch (IOException e) {
                     JOptionPane.showMessageDialog(null, "No se pudo enviar mensajes al registro.", "Error de registro", JOptionPane.ERROR_MESSAGE);

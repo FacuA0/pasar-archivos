@@ -13,8 +13,6 @@ import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.logging.Level;
 
 /**
@@ -68,12 +66,8 @@ public class Transferencia {
                     Recepcion recibir = new Recepcion(socket);
                     recibir.start();
                 } 
-                catch (IOException ex) {
-                    System.err.println("Error en la recepción");
-                    ex.printStackTrace();
-                }
-                catch (Exception e) {
-                    e.printStackTrace();
+                catch (IOException e) {
+                    PasarArchivos.logError(e, "Error en la recepción", "Hubo un error al recibir un nuevo cliente.");
                 }
             }
         }
@@ -215,7 +209,7 @@ public class Transferencia {
             }
             catch (IOException e) {
                 String mensaje = "Hubo un error al cerrar el socket.";
-                PasarArchivos.error(e, "Error general", mensaje);
+                PasarArchivos.logError(e, "Error general", mensaje);
             }
         }
         
@@ -365,11 +359,11 @@ public class Transferencia {
                 PasarArchivos.error(e, "Error de I/O", mensaje);
             }
             finally {
-                if (operacion) {
+                if (archivo != null && operacion) {
                     archivo.delete();
                 }
             }
-
+                
             panelProgreso.removerTransferencia(idPanel);
 
             try {
@@ -377,7 +371,7 @@ public class Transferencia {
             }
             catch (IOException e) {
                 String mensaje = "Hubo un error al cerrar el socket.";
-                PasarArchivos.error(e, "Error de I/O", mensaje);
+                PasarArchivos.logError(e, "Error de I/O", mensaje);
             }
         }
         
