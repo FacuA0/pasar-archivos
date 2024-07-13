@@ -86,6 +86,10 @@ public class PasarArchivos {
     }
     
     public static void logError(Exception error, String titulo, String mensaje) {
+        if (error != null) {
+            error.printStackTrace(System.out);
+        }
+        
         String logMensaje = titulo + ": " + mensaje;
         log.log(Level.SEVERE, logMensaje, error);
     }
