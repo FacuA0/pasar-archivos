@@ -209,7 +209,7 @@ public class Transferencia {
             }
             catch (IOException e) {
                 String mensaje = "Hubo un error al cerrar el socket.";
-                PasarArchivos.logError(e, "Error general", mensaje);
+                PasarArchivos.logWarning(e, "Error general", mensaje);
             }
         }
         
@@ -371,7 +371,7 @@ public class Transferencia {
             }
             catch (IOException e) {
                 String mensaje = "Hubo un error al cerrar el socket.";
-                PasarArchivos.logError(e, "Error de I/O", mensaje);
+                PasarArchivos.logWarning(e, "Error de I/O", mensaje);
             }
         }
         

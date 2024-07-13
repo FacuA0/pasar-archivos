@@ -94,12 +94,21 @@ public class PasarArchivos {
         log.log(Level.SEVERE, logMensaje, error);
     }
     
+    public static void logWarning(Exception error, String titulo, String mensaje) {
+        if (error != null) {
+            error.printStackTrace(System.out);
+        }
+        
+        String logMensaje = titulo + ": " + mensaje;
+        log.log(Level.WARNING, logMensaje, error);
+    }
+    
     private static void definirRegistro() {
         log.setLevel(Level.WARNING);
         log.addHandler(new java.util.logging.Handler() {
             static FileWriter escritor;
             static boolean archivoCreado = false;
-            static final SimpleDateFormat formatoFecha = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss.SSS");
+            static final SimpleDateFormat formatoFecha = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss.SSS XXX");
             
             private void crearArchivo() {
                 SimpleDateFormat formatoArchivo = new SimpleDateFormat("yyyy-MM-dd-hh-mm-ss_SSS");
@@ -162,6 +171,7 @@ public class PasarArchivos {
                 
                 try {
                     escritor.write(linea);
+                    escritor.flush();
                     
                     if (error != null && grave) {
                         error.printStackTrace(new PrintWriter(escritor, true));
