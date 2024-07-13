@@ -13,7 +13,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.BindException;
-import java.net.InetAddress;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.logging.Level;
@@ -26,6 +25,8 @@ import javax.swing.JOptionPane;
 public class PasarArchivos {
     public static Panel panel;
     public static final Logger log = Logger.getLogger("PasarArchivos");
+    public static boolean systemTray = true;
+    
     /**
      * @param args argumentos de línea de comandos
      */
@@ -33,9 +34,9 @@ public class PasarArchivos {
         definirRegistro();
         
         if (!SystemTray.isSupported()) {
-            String mensaje = "La bandeja de íconos del sistema no está disponible para Java. Cerrando aplicación.";
-            error(null, "Bandeja de íconos no soportada.", mensaje);
-            return;
+            String mensaje = "La bandeja de íconos del sistema no está disponible para Java.";
+            logWarning(null, "Bandeja de íconos no soportada.", mensaje);
+            systemTray = false;
         }
         
         Panel.initTheme();

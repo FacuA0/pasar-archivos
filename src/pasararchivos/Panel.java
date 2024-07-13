@@ -2,7 +2,6 @@ package pasararchivos;
 
 import com.formdev.flatlaf.*;
 import java.awt.Toolkit;
-import java.awt.event.WindowEvent;
 import java.io.File;
 import java.net.InetAddress;
 import java.util.HashMap;
@@ -119,6 +118,11 @@ public class Panel extends javax.swing.JFrame {
         chooser.setFileFilter(null);
 
         setTitle("Pasar Archivos 1.2");
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowClosing(java.awt.event.WindowEvent evt) {
+                formWindowClosing(evt);
+            }
+        });
 
         texto.setText("Hola usuario");
 
@@ -258,6 +262,18 @@ public class Panel extends javax.swing.JFrame {
     private void listaDispositivosValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_listaDispositivosValueChanged
         habilitarBoton();
     }//GEN-LAST:event_listaDispositivosValueChanged
+
+    private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
+        if (!PasarArchivos.systemTray) {
+            String titulo = "Cerrar aplicación";
+            String mensaje = "La bandeja de íconos no está soportada en el sistema. Si cierra la ventana, la aplicación se cerrará.";
+            int resultado = JOptionPane.showConfirmDialog(this, mensaje, titulo, JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
+            
+            if (resultado == JOptionPane.OK_OPTION) {
+                System.exit(0);
+            }
+        }
+    }//GEN-LAST:event_formWindowClosing
 
     public static void initTheme() {
         /* Set the Nimbus look and feel */
