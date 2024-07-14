@@ -249,7 +249,8 @@ public class Transferencia {
             int idPanel = panelProgreso.agregarTransferencia(this, Progreso.Modo.RECIBIR, socket.getInetAddress());
             
             File archivo = null;
-            boolean operacion = false;
+            FileOutputStream fileIO = null;
+            boolean operacion = false, completo = false;
 
             try {
                 // Recibir cantidad de archivos a transferir
@@ -294,7 +295,6 @@ public class Transferencia {
                     archivo.createNewFile();
                     operacion = true;
 
-                    FileOutputStream fileIO;
                     try {
                         fileIO = new FileOutputStream(archivo);
                     }
@@ -335,11 +335,13 @@ public class Transferencia {
                     }
                     
                     operacion = false;
+                    completo = progreso == longitud;
 
                     panelProgreso.setDatos(idPanel, progreso, longitud, 0);
 
                     // Cerrar archivo
                     fileIO.close();
+                    fileIO = null;
 
                     archivo.setLastModified(modificado);
                     
@@ -359,7 +361,14 @@ public class Transferencia {
                 PasarArchivos.error(e, "Error de I/O", mensaje);
             }
             finally {
-                if (archivo != null && operacion) {
+                if (fileIO != null) {
+                    try {
+                        fileIO.close();
+                    }
+                    catch (IOException e) {}
+                }
+                
+                if (archivo != null && (operacion || cerrar && !completo)) {
                     archivo.delete();
                 }
             }
