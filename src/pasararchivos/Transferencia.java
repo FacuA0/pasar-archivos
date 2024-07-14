@@ -16,6 +16,8 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.util.logging.Level;
 
+import dev.dirs.UserDirectories;
+
 /**
  * @author Facu
  */
@@ -23,6 +25,7 @@ public class Transferencia {
     private static final int PUERTO = 9060;
     private static final String LOCK = "lock";
     private static Servidor servidor;
+    private static File rutaGuardado;
     public static Progreso panelProgreso;
     
     public static void init() throws RuntimeException {
@@ -30,13 +33,43 @@ public class Transferencia {
         servidor.start();
         
         panelProgreso = new Progreso();
+        
+        rutaGuardado = obtenerRutaGuardado();
     }
+    
     
     public static void transferir(File[] archivos, InetAddress direccion) {
         Elementos e = new Elementos(direccion, archivos);
 
         Envio enviar = new Envio(e);
         enviar.start();
+    }
+    
+    private static File obtenerRutaGuardado() {
+        UserDirectories carpetas = UserDirectories.get();
+        String descargas = carpetas.downloadDir;
+        String usuario = System.getProperty("user.home");
+        
+        System.out.println("Ruta: " + descargas);
+        
+        File guardado = new File(usuario, "Pasar Archivos");
+        
+        if (descargas != null) {
+            guardado = new File(descargas, "Pasar Archivos");
+        }
+        
+        if (!guardado.exists()) {
+            if (!guardado.mkdirs()) {
+                PasarArchivos.logError(null, "No hay destino", "No se pudo crear la carpeta de guardado. Usando la del usuario.");
+                return new File(usuario);
+            }
+        }
+        else if (guardado.isFile()) {
+            PasarArchivos.logError(null, "No hay destino", "La carpeta de guardado es un archivo. Usando la del usuario.");
+            return new File(usuario);
+        }
+        
+        return guardado;
     }
     
     /**
@@ -286,18 +319,19 @@ public class Transferencia {
                     long modificado = stream.readLong();
 
                     // Determinar el nombre final del archivo considerando duplicados
-                    String rutaBase = System.getProperty("user.home") + "/Desktop/";
-                    String ruta = rutaBase + nombre;
-                    for (int i = 2; new File(ruta).exists(); i++) {
-                        int punto = nombre.lastIndexOf(".");
-                        
-                        // Si no hay punto, o el punto se encuentra al principio, se toma todo el nombre.
-                        String sufijo = punto > 0 ? nombre.substring(punto) : "";
-                        String nombre2 = punto > 0 ? nombre.substring(0, punto) : nombre;
-                        ruta = rutaBase + nombre2 + " (" + i + ")" + sufijo;
+                    String ruta = nombre;
+                    
+                    // Si no hay punto, o el punto se encuentra al principio, se toma todo el nombre.
+                    int punto = nombre.lastIndexOf(".");
+                    String sufijo = punto > 0 ? nombre.substring(punto) : "";
+                    String nombre2 = punto > 0 ? nombre.substring(0, punto) : nombre;
+                    
+                    archivo = new File(rutaGuardado, ruta);
+                    for (int i = 2; archivo.exists(); i++) {
+                        ruta = nombre2 + " (" + i + ")" + sufijo;
+                        archivo = new File(rutaGuardado, ruta);
                     }
 
-                    archivo = new File(ruta);
                     archivo.createNewFile();
                     operacion = true;
 
