@@ -155,11 +155,11 @@ public class ClientFinder {
         //long t2 = System.nanoTime();
         while (iter.hasNext()) {
             NetworkInterface interfaz = iter.next();
-            if (interfaz.isLoopback()) continue;
                     
             var addrs = interfaz.getInterfaceAddresses();
             for (InterfaceAddress dir: addrs) {
                 if (!(dir.getAddress() instanceof Inet4Address)) continue;
+                if (dir.getAddress().isLoopbackAddress()) continue;
                 
                 dirs4.add(new DireccionInterfaz(dir, interfaz.getIndex()));
             }

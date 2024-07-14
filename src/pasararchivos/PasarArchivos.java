@@ -186,6 +186,8 @@ public class PasarArchivos {
     }
     
     private static void crearIconoBandeja() {
+        if (!systemTray) return;
+        
         System.out.println("Creando el ícono de bandeja");
         Image image = Toolkit.getDefaultToolkit().createImage("src/images/icono.png");
         TrayIcon icono = new TrayIcon(image, "Pasar archivos");
