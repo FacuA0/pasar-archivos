@@ -13,6 +13,7 @@ import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.logging.Level;
 
 /**
@@ -92,10 +93,16 @@ public class Transferencia {
         public void run() {
             Socket socket;
             DataOutputStream stream;
+            
+            // Crear conexión
             try {
-                // Crear conexión
                 socket = new Socket(items.ip, 9060);
                 stream = new DataOutputStream(socket.getOutputStream());
+            }
+            catch (SocketException e) {
+                String mensaje = "No se pudo conectar con el dispositivo. Probablemente esté inactivo o el programa no está abierto. Vuelva a intentarlo.";
+                PasarArchivos.error(e, "Error al conectar", mensaje);
+                return;
             }
             catch (IOException e) {
                 String mensaje = "Hubo un error de entrada/salida al crear el socket.";
@@ -125,8 +132,7 @@ public class Transferencia {
                         fileIO = new FileInputStream(archivo);
                     }
                     catch (IOException e) {
-                        System.err.println("Hubo un error de I/O al intentar leer un archivo.");
-                        PasarArchivos.log.log(Level.WARNING, "No se pudo leer el archivo. Pasando al siguiente. {0}", new String[] {e.toString()});
+                        PasarArchivos.logWarning(e, "Error al abrir", "No se pudo abrir el archivo. Pasando al siguiente.");
 
                         // Enviar longitud de nombre 0, lo que indica que no hay archivo
                         stream.write(0);
@@ -136,7 +142,7 @@ public class Transferencia {
                     // Comprobar que la longitud del nombre no supere los 255 bytes
                     byte[] nombreBytes = nombre.getBytes();
                     if (nombreBytes.length > 255) {
-                        System.err.println("Nombre de archivo muy grande.");
+                        PasarArchivos.logWarning(null, "Nombre muy largo", "El nombre de archivo es muy largo. Pasando al siguiente.");
 
                         // Enviar longitud de nombre 0, lo que indica que no hay archivo
                         stream.write(0);

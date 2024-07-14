@@ -225,9 +225,8 @@ public class ClientFinder {
                     }
                     System.out.println();
                 }
-                catch (IOException ex) {
-                    ex.printStackTrace();
-                    PasarArchivos.log.log(Level.SEVERE, "Error al enviar paquetes de descubrimiento.");
+                catch (IOException e) {
+                    PasarArchivos.logError(e, "Error de paquetes", "Error al enviar paquetes de descubrimiento.");
                 }
 
                 removerClientesAntiguos();
@@ -250,8 +249,7 @@ public class ClientFinder {
                 }
             }
             catch (IOException e) {
-                e.printStackTrace();
-                PasarArchivos.log.log(Level.SEVERE, "Error al renovar direcciones de interfaz.");
+                PasarArchivos.logError(e, "Error de direcciones", "Error al renovar direcciones de interfaz.");
             }
         }
         
