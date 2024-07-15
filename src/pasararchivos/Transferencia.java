@@ -34,7 +34,7 @@ public class Transferencia {
         
         panelProgreso = new Progreso();
         
-        rutaGuardado = obtenerRutaGuardado();
+        obtenerRutaGuardado();
     }
     
     
@@ -45,31 +45,57 @@ public class Transferencia {
         enviar.start();
     }
     
-    private static File obtenerRutaGuardado() {
-        UserDirectories carpetas = UserDirectories.get();
-        String descargas = carpetas.downloadDir;
+    private static void obtenerRutaGuardado() {
+        //UserDirectories carpetas = UserDirectories.get();
+        //String descargas = carpetas.downloadDir;
         String usuario = System.getProperty("user.home");
         
-        System.out.println("Ruta: " + descargas);
-        
         File guardado = new File(usuario, "Pasar Archivos");
-        
-        if (descargas != null) {
-            guardado = new File(descargas, "Pasar Archivos");
-        }
+        rutaGuardado = guardado;
         
         if (!guardado.exists()) {
             if (!guardado.mkdirs()) {
-                PasarArchivos.logError(null, "No hay destino", "No se pudo crear la carpeta de guardado. Usando la del usuario.");
-                return new File(usuario);
+                PasarArchivos.logError(null, "No hay destino", "No se pudo crear la carpeta de guardado por defecto. Usando la del usuario.");
+                rutaGuardado = new File(usuario);
             }
         }
         else if (guardado.isFile()) {
-            PasarArchivos.logError(null, "No hay destino", "La carpeta de guardado es un archivo. Usando la del usuario.");
-            return new File(usuario);
+            PasarArchivos.logError(null, "No hay destino", "La carpeta de guardado por defecto es un archivo. Usando la del usuario.");
+            rutaGuardado = new File(usuario);
         }
         
-        return guardado;
+        System.out.println("Ruta provisoria: " + rutaGuardado);
+        
+        new Thread(() -> {
+            UserDirectories carpetas = UserDirectories.get();
+            String descargas = carpetas.downloadDir;
+            System.out.println("Ruta real: " + descargas);
+            
+            if (descargas == null) return;
+            
+            File guardado2 = new File(descargas, "Pasar Archivos");
+            if (!guardado2.exists()) {
+                if (!guardado2.mkdirs()) {
+                    PasarArchivos.logError(null, "No hay destino", "No se pudo crear la carpeta de guardado real. Usando la carpeta por defecto.");
+                    return;
+                }
+            }
+            else if (guardado2.isFile()) {
+                PasarArchivos.logError(null, "No hay destino", "La carpeta de guardado real es un archivo. Usando la carpeta por defecto.");
+                return;
+            }
+            
+            rutaGuardado = guardado2;
+            
+            try {
+                Thread.sleep(3000);
+            }
+            catch (InterruptedException e) {}
+            
+            if (!guardado2.equals(guardado) && guardado2.isDirectory()) {
+                guardado.delete();
+            }
+        }, "Ruta Guardado").start();
     }
     
     /**
@@ -287,7 +313,7 @@ public class Transferencia {
             // Agregar transferencia a la ventana de progreso
             int idPanel = panelProgreso.agregarTransferencia(this, Progreso.Modo.RECIBIR, socket.getInetAddress());
             
-            File archivo = null;
+            File archivo = null, destino = rutaGuardado;
             FileOutputStream fileIO = null;
             boolean operacion = false, completo = false;
 
@@ -326,10 +352,10 @@ public class Transferencia {
                     String sufijo = punto > 0 ? nombre.substring(punto) : "";
                     String nombre2 = punto > 0 ? nombre.substring(0, punto) : nombre;
                     
-                    archivo = new File(rutaGuardado, ruta);
+                    archivo = new File(destino, ruta);
                     for (int i = 2; archivo.exists(); i++) {
                         ruta = nombre2 + " (" + i + ")" + sufijo;
-                        archivo = new File(rutaGuardado, ruta);
+                        archivo = new File(destino, ruta);
                     }
 
                     archivo.createNewFile();
