@@ -104,6 +104,11 @@ public class PasarArchivos {
         log.log(Level.WARNING, logMensaje, error);
     }
     
+    public static void advertir(String titulo, String mensaje) {
+        JOptionPane.showMessageDialog(null, mensaje, titulo, JOptionPane.WARNING_MESSAGE);
+        logWarning(null, titulo, mensaje);
+    }
+    
     private static void definirRegistro() {
         log.setLevel(Level.WARNING);
         log.addHandler(new java.util.logging.Handler() {

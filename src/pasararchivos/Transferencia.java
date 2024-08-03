@@ -4,17 +4,13 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
-import java.util.logging.Level;
 
 import dev.dirs.UserDirectories;
 
@@ -146,6 +142,7 @@ public class Transferencia {
         
         Envio(Elementos items) {
             this.items = items;
+            setName("Hilo-Envio-" + items.ip.getHostAddress());
         }
         
         @Override
@@ -296,6 +293,7 @@ public class Transferencia {
         
         Recepcion(Socket socket) {
             this.socket = socket;
+            setName("Hilo-Recepcion-" + socket.getInetAddress().getHostAddress());
         }
         
         @Override
@@ -316,6 +314,7 @@ public class Transferencia {
             File archivo = null, destino = rutaGuardado;
             FileOutputStream fileIO = null;
             boolean operacion = false, completo = false;
+            int omitidos = 0;
 
             try {
                 // Recibir cantidad de archivos a transferir
@@ -329,6 +328,7 @@ public class Transferencia {
                     // Omitir archivo
                     if (largo == 0) {
                         System.err.println("El archivo " + (ind + 1) + " fue omitido.");
+                        omitidos++;
                         continue;
                     }
 
@@ -437,6 +437,10 @@ public class Transferencia {
                 if (archivo != null && (operacion || cerrar && !completo)) {
                     archivo.delete();
                 }
+            }
+            
+            if (omitidos > 0) {
+                PasarArchivos.advertir("Archivos omitidos", "Se omitieron " + omitidos + " archivos en la transferencia por uno o varios errores en el dispositivo origen.");
             }
                 
             panelProgreso.removerTransferencia(idPanel);
