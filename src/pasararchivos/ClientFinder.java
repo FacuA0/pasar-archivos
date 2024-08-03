@@ -7,9 +7,11 @@ import java.net.DatagramSocket;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.InterfaceAddress;
 import java.net.NetworkInterface;
 import java.net.Socket;
+import java.net.SocketAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -188,8 +190,11 @@ public class ClientFinder {
         long refrescarDirecciones;
         //InetAddress broadcast;
         
+        // ::FFFF:167.254.255.255
+        byte[] broadcastMapeado = new byte[] {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, -87, -2, -1, -1};
+        
         Envio() {
-            setName("Hilo-Envio");
+            setName("Hilo-Envio-Señal");
             /*
             try {
                 //broadcast = InetAddress.getByName("255.255.255.255");
@@ -203,8 +208,13 @@ public class ClientFinder {
         
         @Override
         public void run() {
-            byte[] contenido = ("Usuario:" + nombreHost).getBytes();
-            DatagramPacket packet;
+            String nombreHostEscapado = nombreHost.replace("\\", "\\\\").replace(" | ", " \\| ");
+            
+            byte[] contenidoAntiguo = ("Usuario:" + nombreHost).getBytes();
+            byte[] contenido = ("PasarArchivos | version=1.3 | nombre=" + nombreHostEscapado).getBytes();
+            
+            DatagramPacket packet = new DatagramPacket(contenido, contenido.length);
+            packet.setPort(PUERTO);
             
             refrescarDirecciones = System.currentTimeMillis();
 
@@ -218,9 +228,13 @@ public class ClientFinder {
                     
                     for (DireccionInterfaz direccion: direcciones) {
                         InetAddress destino = obtenerDestino(direccion);
+                        packet.setAddress(destino);
                         
                         System.out.println("- Enviando a " + destino + " (" + direccion.getAddress() + ")");
-                        packet = new DatagramPacket(contenido, contenido.length, destino, PUERTO);
+                        packet.setData(contenido);
+                        socketGlobal.send(packet);
+                        
+                        packet.setData(contenidoAntiguo);
                         socketGlobal.send(packet);
                     }
                     System.out.println();
@@ -256,8 +270,6 @@ public class ClientFinder {
         // Si es una IPv4 normal, enviarlo a su destino broadcast.
         // Si es de enlace-local, mapearlo a IPv6 para incluir el ámbito destino.
         private InetAddress obtenerDestino(DireccionInterfaz direccion) throws UnknownHostException {
-            byte[] broadcastMapeado = new byte[] {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, -87, -2, -1, -1};
-            
             if (direccion.getAddress().isLinkLocalAddress() && direccion.ambito != -1) {
                 return Inet6Address.getByAddress(null, broadcastMapeado, direccion.ambito);
             }
@@ -362,22 +374,15 @@ public class ClientFinder {
         
         @Override
         public void run() {
+            byte[] datos = new byte[256];
+            
             while (true) {
-                byte[] datos = new byte[72];
                 DatagramPacket paquete = new DatagramPacket(datos, datos.length);
                 try {
                     socketGlobal.receive(paquete);
 
                     // El paquete es muy pequeño. Descartar.
-                    if (paquete.getLength() <= 8) {
-                        continue;
-                    }
-
-                    byte[] firma = new byte[8];
-                    System.arraycopy(datos, 0, firma, 0, 8);
-
-                    // El paquete vino de otro programa y se equivocó de puerto. Descartar.
-                    if (!new String(firma).equals("Usuario:")) {
+                    if (paquete.getLength() < 8) {
                         continue;
                     }
 
@@ -388,7 +393,8 @@ public class ClientFinder {
                     // IPv4 mapeado a IPv6 (lo cual pasa con direcciones enlace-local).
                     // Previamente se descartaba. Ahora se extrae la versión IPv4 de la dirección.
                     if (origen instanceof Inet6Address) {
-                        if (!Arrays.equals(origen.getAddress(), 0, 12, new byte[] {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1}, 0, 12)) {
+                        byte[] prefijo = new byte[] {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1};
+                        if (!Arrays.equals(origen.getAddress(), 0, 12, prefijo, 0, 12)) {
                             continue;
                         }
                         
@@ -408,16 +414,58 @@ public class ClientFinder {
                     
                     if (duplicado) continue;
                     
+                    
+                    byte[] firma = new byte[13];
+                    System.arraycopy(datos, 0, firma, 0, 13);
+                    
+                    String nombre = "Desconocido";
+                    String version = "1.2";
+                    String firmaS = new String(datos, 0, 13);
+                    
+                    if (paquete.getLength() >= 13) {
+                        if (firmaS.equals("PasarArchivos")) {
+                            String contenido = new String(datos, 0, paquete.getLength());
+                            String[] partes = contenido.split(" \\| ");
+                            
+                            for (int i = 1; i < partes.length; i++) {
+                                int igual = partes[i].indexOf("=");
+                                if (igual == -1) continue;
+                                
+                                String clave = partes[i].substring(0, igual);
+                                String valor = partes[i].substring(igual + 1);
+                                
+                                valor = valor.replace(" \\| ", " | ");
+                                valor = valor.replace("\\\\", "\\");
+                                
+                                if (clave.equals("nombre")) {
+                                    nombre = valor;
+                                }
+                                else if (clave.equals("version")) {
+                                    version = valor;
+                                }
+                            }
+                        }
+                        else if (firmaS.startsWith("Usuario:")) {
+                            nombre = new String(datos, 8, paquete.getLength() - 8);
+                        }
+                        else continue;
+                    }
+                    else if (firmaS.startsWith("Usuario:")) {
+                        nombre = new String(datos, 8, paquete.getLength() - 8);
+                    }
+                    else continue;
+                    
+                    /*
+                    // El paquete vino de otro programa y se equivocó de puerto. Descartar.
+                    if (!new String(firma).equals("Usuario:")) {
+                        continue;
+                    }
+                    */
 
                     long ahora = new Date().getTime();
 
-                    // Nombre del equipo
-                    byte[] nombreB = new byte[paquete.getLength() - 8];
-                    System.arraycopy(datos, 8, nombreB, 0, nombreB.length);
-                    String nombre = new String(nombreB);
-
                     synchronized (LOCK) {
-                        Clientes nuevo = new Clientes(nombre, origen, ahora);
+                        Clientes nuevo = new Clientes(nombre, version, origen, ahora);
                         pares.put(origen.getHostAddress(), nuevo);
                     }
                 } 
@@ -448,11 +496,13 @@ public class ClientFinder {
     
     public static class Clientes {
         public String nombre;
+        public String version;
         public InetAddress direccion;
         public long fechaEmision;
         
-        public Clientes(String nombre, InetAddress direccion, long fechaEmision) {
+        public Clientes(String nombre, String version, InetAddress direccion, long fechaEmision) {
             this.nombre = nombre;
+            this.version = version;
             this.direccion = direccion;
             this.fechaEmision = fechaEmision;
         }
