@@ -4,6 +4,7 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import javax.swing.TransferHandler;
 
@@ -34,20 +35,20 @@ public class ListTransferHandler extends TransferHandler {
             return false;
         }
         
-        List<File> archivos;
-        try {        
-            archivos = (List<File>) info.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
+        ArrayList<File> archivos;
+        try {
+            List<File> listaArchivos = (List<File>) info.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
+            archivos = new ArrayList<>(listaArchivos);
+            
+            // Filtrar carpetas
+            archivos.removeIf(f -> !f.isFile());
         }
         catch (UnsupportedFlavorException | IOException e) {
             PasarArchivos.error(e, "Error de soltar", "Hubo un error al realizar la operación de arrastrar y soltar.");
             return false;
         }
         
-        panel.archivos = new File[archivos.size()];
-        for (int i = 0; i < archivos.size(); i++) {
-            panel.archivos[i] = archivos.get(i);
-        }
-        
+        panel.archivos = archivos.toArray(File[]::new);
         panel.actualizarArchivos();
         
         return true;
