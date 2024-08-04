@@ -243,11 +243,24 @@ public class Progreso extends javax.swing.JFrame {
             this.nombreHost = "";
             this.hilo = hilo;
             
-            this.panel = new PanelProgreso();
+            this.panel = new PanelProgreso(this);
         }
     }
     
     private void detenerTodo() {
+        if (transferencias.size() == 1) {
+            setTitle("Cancelando transferencia...");
+        }
+        else {
+            setTitle("Cancelando transferencias...");
+        }
+        
+        for (Datos d: transferencias) {
+            d.hilo.detener();
+        }
+    }
+    
+    public void detenerTransferencia(PanelProgreso panel) {
         if (transferencias.size() == 1) {
             setTitle("Cancelando transferencia...");
         }

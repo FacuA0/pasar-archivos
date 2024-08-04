@@ -4,17 +4,23 @@
  */
 package pasararchivos;
 
+import javax.swing.JOptionPane;
+
 /**
  *
  * @author Facu
  */
 public class PanelProgreso extends javax.swing.JPanel {
-
+    private Progreso.Datos datos;
+    boolean cancelando = false;
+    
     /**
      * Creates new form PanelProgreso
      */
-    public PanelProgreso() {
+    public PanelProgreso(Progreso.Datos datos) {
         initComponents();
+        
+        this.datos = datos;
     }
     
     public void setMaximoBarra(int maximo) {
@@ -37,6 +43,8 @@ public class PanelProgreso extends javax.swing.JPanel {
     }
     
     public void setDatos(String porcentaje, String pasados, String total, String velocidad) {
+        if (cancelando) return;
+        
         txtDatos.setText(porcentaje + " (" + pasados + " / " + total + ") - " + velocidad);
     }
 
@@ -55,6 +63,7 @@ public class PanelProgreso extends javax.swing.JPanel {
         txtCantidad = new javax.swing.JLabel();
         barraProgreso = new javax.swing.JProgressBar();
         txtDatos = new javax.swing.JLabel();
+        btnCancelar = new javax.swing.JButton();
 
         setMaximumSize(new java.awt.Dimension(32767, 80));
 
@@ -74,15 +83,27 @@ public class PanelProgreso extends javax.swing.JPanel {
 
         txtDatos.setText("0% (0 MB / 0,0 MB) - 0,0 MB/s");
 
+        btnCancelar.setBackground(new java.awt.Color(242, 242, 242));
+        btnCancelar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/cancelar.png"))); // NOI18N
+        btnCancelar.setBorder(null);
+        btnCancelar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnCancelarActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addGroup(layout.createSequentialGroup()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addComponent(barraProgreso, javax.swing.GroupLayout.PREFERRED_SIZE, 376, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(txtDatos))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(txtDatos)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(btnCancelar)))
                 .addGap(0, 0, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
@@ -93,14 +114,30 @@ public class PanelProgreso extends javax.swing.JPanel {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(barraProgreso, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(txtDatos)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(txtDatos)
+                    .addComponent(btnCancelar))
                 .addContainerGap(8, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
+    private void btnCancelarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCancelarActionPerformed
+        String titulo = "Detener transferencia";
+        String mensaje = "¿Deseas detener la transferencia?";
+        
+        int detener = JOptionPane.showConfirmDialog(this, mensaje, titulo, JOptionPane.YES_NO_OPTION);
+        if (detener != JOptionPane.YES_OPTION) return;
+        
+        cancelando = true;
+        txtNombre.setText("Cancelando transferencia...");
+        
+        datos.hilo.detener();
+    }//GEN-LAST:event_btnCancelarActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JProgressBar barraProgreso;
+    private javax.swing.JButton btnCancelar;
     private javax.swing.Box.Filler filler1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JLabel txtCantidad;
