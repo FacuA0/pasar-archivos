@@ -83,13 +83,13 @@ public class Progreso extends javax.swing.JFrame {
         String sufijo = (envios + recepciones > 1 ? "archivos..." : "archivo...");
         
         if (envios > 0 && recepciones == 0) {
-            setTitle("Transfiriendo " + sufijo);
+            setTitle("Enviando " + sufijo);
         }
         else if (envios == 0 && recepciones > 0) {
             setTitle("Recibiendo " + sufijo);
         }
         else if (envios > 0 && recepciones > 0) {
-            setTitle("Transfiriendo y recibiendo " + sufijo);
+            setTitle("Transfiriendo " + sufijo);
         }
         else {
             setTitle("Barra de progreso");
@@ -128,12 +128,7 @@ public class Progreso extends javax.swing.JFrame {
         actualizarTitulo();
         
         datos.panel.setCantidad(indice, cantidad);
-        if (datos.modo == Modo.ENVIAR) {
-            datos.panel.setNombreArchivo("Transfiriendo " + archivo);
-        }
-        else {
-            datos.panel.setNombreArchivo("Recibiendo " + archivo);
-        }
+        datos.panel.setNombreArchivo(archivo);
     }
     
     public void setDatos(int idDatos, long pasados, long total, long velocidad) {

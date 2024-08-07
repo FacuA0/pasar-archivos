@@ -142,7 +142,7 @@ public class Transferencia {
         
         Envio(Elementos items) {
             this.items = items;
-            setName("Hilo-Envio-" + items.ip.getHostAddress());
+            setName("Hilo-Envio");
         }
         
         @Override

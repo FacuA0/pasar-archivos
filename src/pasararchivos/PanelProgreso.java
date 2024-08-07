@@ -4,6 +4,7 @@
  */
 package pasararchivos;
 
+import java.awt.FontMetrics;
 import javax.swing.JOptionPane;
 
 /**
@@ -31,8 +32,17 @@ public class PanelProgreso extends javax.swing.JPanel {
         barraProgreso.setValue(valor);
     }
     
-    public void setNombreArchivo(String texto) {
-        txtNombre.setText(texto);
+    public void setNombreArchivo(String nombre) {
+        if (cancelando) return;
+        
+        nombre = abreviarNombreArchivo(nombre);
+        
+        if (datos.modo == Progreso.Modo.ENVIAR) {
+            txtNombre.setText("Transfiriendo " + nombre);
+        }
+        else {
+            txtNombre.setText("Recibiendo " + nombre);
+        }
     }
     
     public void setCantidad(int indice, int total) {
@@ -43,9 +53,35 @@ public class PanelProgreso extends javax.swing.JPanel {
     }
     
     public void setDatos(String porcentaje, String pasados, String total, String velocidad) {
-        if (cancelando) return;
-        
         txtDatos.setText(porcentaje + " (" + pasados + " / " + total + ") - " + velocidad);
+    }
+    
+    private String abreviarNombreArchivo(String archivo) {
+        FontMetrics medidas = txtNombre.getFontMetrics(txtNombre.getFont());
+        int anchoNombre = medidas.stringWidth(archivo);
+        int anchoTotal = 260;
+        
+        // El nombre entra sin problemas
+        if (anchoNombre <= anchoTotal) {
+            return archivo;
+        }
+        
+        // Separar nombre y extensión y medir cada uno
+        int indiceSufijo = archivo.lastIndexOf(".");
+        
+        String sufijo = indiceSufijo > 0 ? archivo.substring(indiceSufijo) : "";
+        String nombre = indiceSufijo > 0 ? archivo.substring(0, indiceSufijo) : archivo;
+        String puntos = indiceSufijo > 0 ? ".." : "...";
+        String nombreCorto = "";
+        
+        for (int i = Math.min(nombre.length() - 1, 120); i > 1; i--) {
+            nombreCorto = nombre.substring(0, i) + puntos + sufijo;
+            anchoNombre = medidas.stringWidth(nombreCorto);
+            
+            if (anchoNombre <= anchoTotal) break;
+        }
+        
+        return nombreCorto;
     }
 
     /**

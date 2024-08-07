@@ -192,7 +192,7 @@ public class ClientFinder {
         byte[] broadcastMapeado = new byte[] {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, -87, -2, -1, -1};
         
         Envio() {
-            setName("Hilo-Envio-Señal");
+            setName("Hilo-Emision");
             /*
             try {
                 //broadcast = InetAddress.getByName("255.255.255.255");
@@ -228,14 +228,14 @@ public class ClientFinder {
                         InetAddress destino = obtenerDestino(direccion);
                         packet.setAddress(destino);
                         
-                        System.out.println("- Enviando a " + destino + " (" + direccion.getAddress() + ")");
+                        //System.out.println("- Enviando a " + destino + " (" + direccion.getAddress() + ")");
                         packet.setData(contenido);
                         socketGlobal.send(packet);
                         
                         packet.setData(contenidoAntiguo);
                         socketGlobal.send(packet);
                     }
-                    System.out.println();
+                    //System.out.println();
                 }
                 catch (IOException e) {
                     PasarArchivos.logError(e, "Error de paquetes", "Error al enviar paquetes de descubrimiento.");
@@ -246,7 +246,7 @@ public class ClientFinder {
 
                 try {
                     long t2 = System.currentTimeMillis();
-                    System.out.println("sleep: " + Math.max(0, 3000 - (t2 - t1)));
+                    System.out.println("Sleep de emisión: " + Math.max(0, 3000 - (t2 - t1)));
                     Thread.sleep(Math.max(0, 3000 - (t2 - t1)));
                 }
                 catch (InterruptedException e) {}
@@ -385,7 +385,7 @@ public class ClientFinder {
                     }
 
                     InetAddress origen = paquete.getAddress();
-                    System.out.println("Socket global: Paquete recibido de " + origen.toString() + " - \"" + new String(datos).trim() + "\"");
+                    //System.out.println("Socket global: Paquete recibido de " + origen.toString() + " - \"" + new String(datos).trim() + "\"");
                     
                     // Probablemente hayamos recibido una versión de nuestro paquete en formato
                     // IPv4 mapeado a IPv6 (lo cual pasa con direcciones enlace-local).
