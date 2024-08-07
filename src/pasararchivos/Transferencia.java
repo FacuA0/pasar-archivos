@@ -157,15 +157,15 @@ public class Transferencia {
             }
             catch (SocketException e) {
                 String mensaje = "No se pudo conectar con el dispositivo. Probablemente esté inactivo o el programa no está abierto. Vuelva a intentarlo.";
-                PasarArchivos.error(e, "Error al conectar", mensaje);
+                PasarArchivos.error(panelProgreso, e, "Error al conectar", mensaje);
                 return;
             }
             catch (IOException e) {
                 String mensaje = "Hubo un error de entrada/salida al crear el socket.";
-                PasarArchivos.error(e, "Error de I/O", mensaje);
+                PasarArchivos.error(panelProgreso, e, "Error de I/O", mensaje);
                 return;
             }
-
+            
             // Abrir barra en la ventana de progreso
             int idPanel = panelProgreso.agregarTransferencia(this, Progreso.Modo.ENVIAR, items.ip);
 
@@ -256,11 +256,11 @@ public class Transferencia {
             }
             catch (IOException e) {
                 String mensaje = "La transferencia fue cancelada por el otro equipo o hubo un error de I/O.";
-                PasarArchivos.error(e, "Error de I/O", mensaje);
+                PasarArchivos.error(panelProgreso, e, "Error de I/O", mensaje);
             }
             catch (Exception e) {
                 String mensaje = "Hubo un error durante la transferencia.";
-                PasarArchivos.error(e, "Error general", mensaje);
+                PasarArchivos.error(panelProgreso, e, "Error general", mensaje);
             }
 
             panelProgreso.removerTransferencia(idPanel);
@@ -304,7 +304,7 @@ public class Transferencia {
             }
             catch (IOException e) {
                 String mensaje = "Hubo un error de entrada/salida al obtener el flujo de datos del socket.";
-                PasarArchivos.error(e, "Error de I/O", mensaje);
+                PasarArchivos.error(panelProgreso, e, "Error de I/O", mensaje);
                 return;
             }
 
@@ -366,7 +366,7 @@ public class Transferencia {
                     }
                     catch (IOException e) {
                         String mensaje = "Hubo un error al intentar guardar el archivo entrante en el sistema.";
-                        PasarArchivos.error(e, "Error de I/O", mensaje);
+                        PasarArchivos.error(panelProgreso, e, "Error de I/O", mensaje);
                         break;
                     }
 
@@ -415,16 +415,17 @@ public class Transferencia {
                 }
             }
             catch (EOFException e) {
-                System.out.println("El usuario canceló la transferencia.");
-                PasarArchivos.mostrarDialogo("Transferencia cancelada", "El destinatario decidió cancelar la tansferencia.");
+                System.out.println("El emisor canceló la transferencia.");
+                String mensaje = "El emisor decidió cancelar la tansferencia de archivos.";
+                PasarArchivos.dialogo(panelProgreso, "Transferencia cancelada", mensaje);
             }
             catch (IOException ex) {
                 String mensaje = "Hubo un error de entrada/salida al recibir el archivo.";
-                PasarArchivos.error(ex, "Error de I/O", mensaje);
+                PasarArchivos.error(panelProgreso, ex, "Error de I/O", mensaje);
             }
             catch (Exception e) {
                 String mensaje = "Hubo un error al recibir el archivo.";
-                PasarArchivos.error(e, "Error de I/O", mensaje);
+                PasarArchivos.error(panelProgreso, e, "Error ocurrido", mensaje);
             }
             finally {
                 if (fileIO != null) {
@@ -440,7 +441,8 @@ public class Transferencia {
             }
             
             if (omitidos > 0) {
-                PasarArchivos.advertir("Archivos omitidos", "Se omitieron " + omitidos + " archivos en la transferencia por uno o varios errores en el dispositivo origen.");
+                String mensaje = "Se omitieron " + omitidos + " archivos en la transferencia por uno o varios errores en el dispositivo origen.";
+                PasarArchivos.advertir(panelProgreso, "Archivos omitidos", mensaje);
             }
                 
             panelProgreso.removerTransferencia(idPanel);

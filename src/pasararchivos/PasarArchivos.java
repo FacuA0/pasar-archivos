@@ -17,6 +17,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
 /**
@@ -31,13 +32,8 @@ public class PasarArchivos {
      * @param args argumentos de línea de comandos
      */
     public static void main(String[] args) {
-        definirRegistro();
-        
-        if (!SystemTray.isSupported()) {
-            String mensaje = "La bandeja de íconos del sistema no está disponible para Java.";
-            logWarning(null, "Bandeja de íconos no soportada.", mensaje);
-            systemTray = false;
-        }
+        iniciarRegistro();
+        crearIconoBandeja();
         
         Panel.initTheme();
         panel = new Panel();
@@ -55,7 +51,7 @@ public class PasarArchivos {
                 mensaje = "Hubo un error al iniciar la funcionalidad de descubrir otros dispositivos. Cerrando aplicación.";
             }
             
-            error(e, "Error de inicio", mensaje);
+            error(null, e, "Error de inicio", mensaje);
             //panel.hayInternet(false);
             System.exit(1);
         }
@@ -70,20 +66,31 @@ public class PasarArchivos {
         if (abrir) {
             panel.setVisible(true);
         }
-        
-        crearIconoBandeja();
     }
     
-    public static void mostrarDialogo(String titulo, String mensaje) {
+    public static void dialogo(JFrame ventana, String titulo, String mensaje) {
         int tipoInfo = JOptionPane.INFORMATION_MESSAGE;
-        JOptionPane.showMessageDialog(panel, mensaje, titulo, tipoInfo);
+        if (ventana == null) ventana = panel;
+        
+        JOptionPane.showMessageDialog(ventana, mensaje, titulo, tipoInfo);
     }
     
-    public static void error(Exception error, String titulo, String mensaje) {
+    public static void advertir(JFrame ventana, String titulo, String mensaje) {
+        logWarning(null, titulo, mensaje);
+        
+        int tipoAdvertencia = JOptionPane.WARNING_MESSAGE;
+        if (ventana == null) ventana = panel;
+        
+        JOptionPane.showMessageDialog(ventana, mensaje, titulo, tipoAdvertencia);
+    }
+    
+    public static void error(JFrame ventana, Exception error, String titulo, String mensaje) {
         logError(error, titulo, mensaje);
         
         int tipoError = JOptionPane.ERROR_MESSAGE;
-        JOptionPane.showMessageDialog(panel, mensaje, titulo, tipoError);
+        if (ventana == null) ventana = panel;
+        
+        JOptionPane.showMessageDialog(ventana, mensaje, titulo, tipoError);
     }
     
     public static void logError(Exception error, String titulo, String mensaje) {
@@ -104,12 +111,7 @@ public class PasarArchivos {
         log.log(Level.WARNING, logMensaje, error);
     }
     
-    public static void advertir(String titulo, String mensaje) {
-        JOptionPane.showMessageDialog(null, mensaje, titulo, JOptionPane.WARNING_MESSAGE);
-        logWarning(null, titulo, mensaje);
-    }
-    
-    private static void definirRegistro() {
+    private static void iniciarRegistro() {
         log.setLevel(Level.WARNING);
         log.addHandler(new java.util.logging.Handler() {
             static FileWriter escritor;
@@ -191,7 +193,12 @@ public class PasarArchivos {
     }
     
     private static void crearIconoBandeja() {
-        if (!systemTray) return;
+        if (!SystemTray.isSupported()) {
+            String mensaje = "La bandeja de íconos del sistema no está disponible para Java.";
+            logWarning(null, "Bandeja de íconos no soportada.", mensaje);
+            systemTray = false;
+            return;
+        }
         
         System.out.println("Creando el ícono de bandeja");
         Image image = Toolkit.getDefaultToolkit().createImage("src/images/icono.png");

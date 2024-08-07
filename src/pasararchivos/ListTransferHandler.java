@@ -44,7 +44,7 @@ public class ListTransferHandler extends TransferHandler {
             archivos.removeIf(f -> !f.isFile());
         }
         catch (UnsupportedFlavorException | IOException e) {
-            PasarArchivos.error(e, "Error de soltar", "Hubo un error al realizar la operación de arrastrar y soltar.");
+            PasarArchivos.error(null, e, "Error de soltar", "Hubo un error al realizar la operación de arrastrar y soltar.");
             return false;
         }
         
