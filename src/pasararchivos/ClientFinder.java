@@ -9,7 +9,6 @@ import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.InterfaceAddress;
 import java.net.NetworkInterface;
-import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -32,26 +31,13 @@ public class ClientFinder {
     private static String nombreHost;
     private static DatagramSocket socketGlobal;
     private static DireccionInterfaz[] direcciones;
-    //private static Escucha[] listeners;
-    //private static DatagramSocket[] sockets;
     
     public static void init() throws RuntimeException {
         nombreHost = obtenerNombreHost();
         
         try {
             direcciones = obtenerDireccionesLocales();
-        
             socketGlobal = new DatagramSocket(PUERTO);
-            //System.out.println("\nDirección global: " + socketGlobal.getLocalAddress());
-            //System.out.println("Dirección global getHostAddres(): " + socketGlobal.getLocalAddress().getHostAddress());
-            /*
-            //sockets = new DatagramSocket[direcciones.length];
-            System.out.println("Direcciones: ");
-            for (int i = 0; i < direcciones.length; i++) {
-                System.out.println(i + ": " + direcciones[i].toString());
-                //sockets[i] = new DatagramSocket(PUERTO, direcciones[i]);
-            }
-            */
         }
         catch (SocketException e) {
             throw new RuntimeException(e);
@@ -71,13 +57,6 @@ public class ClientFinder {
         
         escuchaGlobal = new EscuchaGlobal();
         escuchaGlobal.start();
-        
-        /*
-        listeners = new Escucha[direcciones.length];
-        for (int i = 0; i < direcciones.length; i++) {
-            listeners[i] = new Escucha(i);
-            listeners[i].start();
-        }*/
     }
     
     public static HashMap<InetAddress, String> getDispositivos() {
@@ -110,49 +89,9 @@ public class ClientFinder {
     }
     
     private static DireccionInterfaz[] obtenerDireccionesLocales() throws IOException {
-        /*
-        if (nombreHost == null && false) {
-            InetAddress direccion = obtenerDireccionExterna();
-            NetworkInterface interfaz = NetworkInterface.getByInetAddress(direccion);
-            
-            for (InterfaceAddress dirInterfaz: interfaz.getInterfaceAddresses()) {
-                if (dirInterfaz.getAddress().equals(direccion)) {
-                    return new InterfaceAddress[] {dirInterfaz};
-                }
-            }
-        }
-        */
-        
-        boolean mostrarInterfaces = false;
-        if (mostrarInterfaces) {
-            System.out.println("Interfaces:");
-            Iterator<NetworkInterface> iter = NetworkInterface.getNetworkInterfaces().asIterator();
-            while (iter.hasNext()) {
-                NetworkInterface interfaces = iter.next();
-                System.out.println(interfaces.getName());
-                var addrs = interfaces.getInterfaceAddresses();
-                if (!addrs.isEmpty()) {
-                    for (InterfaceAddress direc: addrs) {
-                        System.out.println(direc.toString());
-                    }
-                    System.out.println("");
-                }
-            }
-
-            InetAddress[] dirs = InetAddress.getAllByName(nombreHost);
-
-            System.out.println("\nDirecciones:");
-            for (InetAddress direc: dirs) {
-                System.out.println(direc.toString());
-            }
-        }
-        
-        //long t1 = System.nanoTime();
-        
         ArrayList<DireccionInterfaz> dirs4 = new ArrayList<>();
         Iterator<NetworkInterface> iter = NetworkInterface.getNetworkInterfaces().asIterator();
         
-        //long t2 = System.nanoTime();
         while (iter.hasNext()) {
             NetworkInterface interfaz = iter.next();
                     
@@ -165,43 +104,17 @@ public class ClientFinder {
             }
         }
         
-        //System.out.println(System.nanoTime() - t1);
-        //System.out.println(System.nanoTime() - t2);
-        
-        /*
-        for (InetAddress dir: dirs) {
-            if (!(dir instanceof Inet4Address)) continue;
-            
-            NetworkInterface interfaz = NetworkInterface.getByInetAddress(dir);
-            for (InterfaceAddress dirInterfaz: interfaz.getInterfaceAddresses()) {
-                if (dirInterfaz.getAddress().equals(dir)) {
-                    //dirs4.add(dirInterfaz);
-                }
-            }
-        }
-        */
-        
         return dirs4.toArray(DireccionInterfaz[]::new);
     }
     
     public static class Envio extends Thread {
         long refrescarDirecciones;
-        //InetAddress broadcast;
         
         // ::FFFF:167.254.255.255
         byte[] broadcastMapeado = new byte[] {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, -87, -2, -1, -1};
         
         Envio() {
             setName("Hilo-Emision");
-            /*
-            try {
-                //broadcast = InetAddress.getByName("255.255.255.255");
-                //broadcast6 = InetAddress.getByName("ff02::1");
-            } catch (UnknownHostException ex) {
-                ex.printStackTrace();
-                PasarArchivos.log.log(Level.SEVERE, "Error al crear dirección de broadcast.");
-            }
-            */
         }
         
         @Override
@@ -301,70 +214,6 @@ public class ClientFinder {
         }
     }
     
-    /*
-    public static class Escucha extends Thread {
-        int indice;
-        
-        Escucha(int indice) {
-            this.indice = indice;
-        }
-        
-        @Override
-        public void run() {
-            while (true) {
-                byte[] datos = new byte[72];
-                DatagramPacket paquete = new DatagramPacket(datos, datos.length);
-                try {
-                    sockets[indice].receive(paquete);
-
-                    // El paquete es muy pequeño. Descartar.
-                    if (paquete.getLength() <= 8) {
-                        continue;
-                    }
-
-                    byte[] firma = new byte[8];
-                    System.arraycopy(datos, 0, firma, 0, 8);
-
-                    // El paquete vino de otro programa y se equivocó de puerto. Descartar.
-                    if (!new String(firma).equals("Usuario:")) {
-                        continue;
-                    }
-
-                    InetAddress origen = paquete.getAddress();
-                    String nombreSocket = "Socket " + indice + " (" + sockets[indice].getLocalAddress().toString() + ")";
-                    System.out.println(nombreSocket + ": Paquete recibido de " + origen.toString() + " - \"" + new String(datos).trim() + "\"");
-                    
-                    // Probablemente hayamos recibido una versión de nuestro paquete en formato
-                    // IPv4 mapeado a IPv6 (lo cual pasa con direcciones enlace-local). Descartar.
-                    if (origen instanceof Inet6Address) {
-                        continue;
-                    }
-
-                    // Recibimos nuestro propio paquete. Descartar.
-                    if (origen.getHostAddress().equals(direcciones[indice].getAddress().getHostAddress())) {
-                        continue;
-                    }
-
-                    long ahora = new Date().getTime();
-
-                    // Nombre del equipo
-                    byte[] nombreB = new byte[paquete.getLength() - 8];
-                    System.arraycopy(datos, 8, nombreB, 0, nombreB.length);
-                    String nombre = new String(nombreB);
-
-                    synchronized (LOCK) {
-                        Clientes nuevo = new Clientes(nombre, origen, ahora);
-                        pares.put(origen.getHostAddress(), nuevo);
-                    }
-                } 
-                catch (IOException ex) {
-                    PasarArchivos.log.log(Level.SEVERE, "Error al esperar paquete.");
-                }
-            }
-        }
-    }
-*/
-    
     public static class EscuchaGlobal extends Thread {
         public EscuchaGlobal() {
             setName("Hilo-EscuchaGlobal");
@@ -385,6 +234,7 @@ public class ClientFinder {
                     }
 
                     InetAddress origen = paquete.getAddress();
+                    assert origen != null;
                     //System.out.println("Socket global: Paquete recibido de " + origen.toString() + " - \"" + new String(datos).trim() + "\"");
                     
                     // Probablemente hayamos recibido una versión de nuestro paquete en formato

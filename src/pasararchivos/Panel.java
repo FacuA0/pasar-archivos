@@ -117,7 +117,7 @@ public class Panel extends javax.swing.JFrame {
         chooser.setDialogTitle("Elegir archivos");
         chooser.setFileFilter(null);
 
-        setTitle("Pasar Archivos 1.2");
+        setTitle("Pasar Archivos 1.3");
         addWindowListener(new java.awt.event.WindowAdapter() {
             public void windowClosing(java.awt.event.WindowEvent evt) {
                 formWindowClosing(evt);

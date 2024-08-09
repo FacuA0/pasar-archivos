@@ -3,7 +3,6 @@ package pasararchivos;
 import java.awt.AWTException;
 import java.awt.Frame;
 import java.awt.Image;
-import java.awt.Menu;
 import java.awt.MenuItem;
 import java.awt.PopupMenu;
 import java.awt.SystemTray;
@@ -21,9 +20,7 @@ import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFrame;
-import javax.swing.JMenu;
 import javax.swing.JOptionPane;
-import javax.swing.JPopupMenu;
 
 /**
  * @author Facu
