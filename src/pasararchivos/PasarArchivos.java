@@ -3,6 +3,9 @@ package pasararchivos;
 import java.awt.AWTException;
 import java.awt.Frame;
 import java.awt.Image;
+import java.awt.Menu;
+import java.awt.MenuItem;
+import java.awt.PopupMenu;
 import java.awt.SystemTray;
 import java.awt.Toolkit;
 import java.awt.TrayIcon;
@@ -18,7 +21,9 @@ import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFrame;
+import javax.swing.JMenu;
 import javax.swing.JOptionPane;
+import javax.swing.JPopupMenu;
 
 /**
  * @author Facu
@@ -200,14 +205,28 @@ public class PasarArchivos {
             return;
         }
         
-        System.out.println("Creando el ícono de bandeja");
         Image image = Toolkit.getDefaultToolkit().createImage("src/images/icono.png");
-        TrayIcon icono = new TrayIcon(image, "Pasar archivos");
+        
+        MenuItem itemSalir = new MenuItem("Salir");
+        itemSalir.addActionListener(e -> System.exit(0));
+        
+        PopupMenu menuIcono = new PopupMenu();
+        menuIcono.add(itemSalir);
+        
+        System.out.println("Creando el ícono de bandeja");
+        TrayIcon icono = new TrayIcon(image, "Pasar archivos", menuIcono);
         icono.setImageAutoSize(true);
         
         icono.addMouseListener(new MouseListener() {
+            boolean popupTrigger = false;
+            
             @Override 
             public void mouseClicked(MouseEvent e) {
+                if (popupTrigger) {
+                    popupTrigger = false;
+                    return;
+                }
+                
                 if (panel.isVisible()) {
                     int estado = panel.getExtendedState();
                     if ((estado & Frame.ICONIFIED) == Frame.ICONIFIED) {
@@ -223,10 +242,15 @@ public class PasarArchivos {
                 }
             }
             
+            @Override public void mousePressed(MouseEvent e) {
+                if (e.isPopupTrigger()) popupTrigger = true;
+            }
+            @Override public void mouseReleased(MouseEvent e) {
+                if (e.isPopupTrigger()) popupTrigger = true;
+            }
+            
             @Override public void mouseEntered(MouseEvent e) {}
             @Override public void mouseExited(MouseEvent e) {}
-            @Override public void mousePressed(MouseEvent e) {}
-            @Override public void mouseReleased(MouseEvent e) {}
         });
         
         try {
