@@ -270,14 +270,15 @@ public class Transferencia {
                 String titulo, mensaje;
                 if (cancelado) {
                     titulo = "Transferencia cancelada";
-                    mensaje = "La transferencia fue cancelada por el equipo destino.";
+                    mensaje = "El receptor decidió cancelar la transferencia de archivos.";
+                    PasarArchivos.dialogo(panelProgreso, titulo, mensaje);
+                    PasarArchivos.logWarning(e, titulo, mensaje);
                 }
                 else {
                     titulo = "Error de I/O";
                     mensaje = "Hubo un error de I/O al enviar el archivo.";
+                    PasarArchivos.error(panelProgreso, e, titulo, mensaje);
                 }
-                
-                PasarArchivos.error(panelProgreso, e, titulo, mensaje);
             }
             catch (Exception e) {
                 String mensaje = "Hubo un error durante la transferencia.";
