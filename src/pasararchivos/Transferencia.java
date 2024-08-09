@@ -13,6 +13,7 @@ import java.net.Socket;
 import java.net.SocketException;
 
 import dev.dirs.UserDirectories;
+import java.io.InputStream;
 
 /**
  * @author Facu
@@ -138,7 +139,8 @@ public class Transferencia {
      */
     public static class Envio extends Thread implements Transferidor {
         Elementos items;
-        boolean cerrar = false;
+        boolean cerrar = false, cancelado = false;
+        InputStream input;
         
         Envio(Elementos items) {
             this.items = items;
@@ -154,6 +156,7 @@ public class Transferencia {
             try {
                 socket = new Socket(items.ip, 9060);
                 stream = new DataOutputStream(socket.getOutputStream());
+                input = socket.getInputStream();
             }
             catch (SocketException e) {
                 String mensaje = "No se pudo conectar con el dispositivo. Probablemente esté inactivo o el programa no está abierto. Vuelva a intentarlo.";
@@ -165,6 +168,10 @@ public class Transferencia {
                 PasarArchivos.error(panelProgreso, e, "Error de I/O", mensaje);
                 return;
             }
+            
+            // Hilo para detectar cierre de socket remoto (cancelación remota)
+            Thread hiloCancelar = new Thread(this::hiloCancelacion);
+            hiloCancelar.start();
             
             // Abrir barra en la ventana de progreso
             int idPanel = panelProgreso.agregarTransferencia(this, Progreso.Modo.ENVIAR, items.ip);
@@ -255,8 +262,22 @@ public class Transferencia {
                 }
             }
             catch (IOException e) {
-                String mensaje = "La transferencia fue cancelada por el otro equipo o hubo un error de I/O.";
-                PasarArchivos.error(panelProgreso, e, "Error de I/O", mensaje);
+                try {
+                    hiloCancelar.join(1000);
+                }
+                catch (InterruptedException e2) {}
+                
+                String titulo, mensaje;
+                if (cancelado) {
+                    titulo = "Transferencia cancelada";
+                    mensaje = "La transferencia fue cancelada por el equipo destino.";
+                }
+                else {
+                    titulo = "Error de I/O";
+                    mensaje = "Hubo un error de I/O al enviar el archivo.";
+                }
+                
+                PasarArchivos.error(panelProgreso, e, titulo, mensaje);
             }
             catch (Exception e) {
                 String mensaje = "Hubo un error durante la transferencia.";
@@ -278,6 +299,15 @@ public class Transferencia {
         @Override
         public void detener() {
             cerrar = true;
+        }
+        
+        private void hiloCancelacion() {
+            try {
+                while (input.read() != -1) {}
+                
+                cancelado = true;
+            }
+            catch (IOException e) {}
         }
     }
     
@@ -448,6 +478,7 @@ public class Transferencia {
             panelProgreso.removerTransferencia(idPanel);
 
             try {
+                socket.setSoLinger(cerrar, 3000);
                 socket.close();
             }
             catch (IOException e) {
