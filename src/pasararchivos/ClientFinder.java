@@ -142,10 +142,10 @@ public class ClientFinder {
                         packet.setAddress(destino);
                         
                         //System.out.println("- Enviando a " + destino + " (" + direccion.getAddress() + ")");
-                        packet.setData(contenido);
+                        packet.setData(contenidoAntiguo);
                         socketGlobal.send(packet);
                         
-                        packet.setData(contenidoAntiguo);
+                        packet.setData(contenido);
                         socketGlobal.send(packet);
                     }
                     //System.out.println();
@@ -261,10 +261,6 @@ public class ClientFinder {
                     }
                     
                     if (duplicado) continue;
-                    
-                    
-                    byte[] firma = new byte[13];
-                    System.arraycopy(datos, 0, firma, 0, 13);
                     
                     String nombre = "Desconocido";
                     String version = "1.2";
