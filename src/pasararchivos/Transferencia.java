@@ -1,5 +1,7 @@
 package pasararchivos;
 
+import dev.dirs.UserDirectories;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.DataInputStream;
@@ -7,13 +9,12 @@ import java.io.DataOutputStream;
 import java.io.FileOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
-
-import dev.dirs.UserDirectories;
-import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
 /**
  * @author Facu
@@ -203,7 +204,7 @@ public class Transferencia {
                     }
 
                     // Comprobar que la longitud del nombre no supere los 255 bytes
-                    byte[] nombreBytes = nombre.getBytes();
+                    byte[] nombreBytes = nombre.getBytes(StandardCharsets.UTF_8);
                     if (nombreBytes.length > 255) {
                         PasarArchivos.logWarning(null, "Nombre muy largo", "El nombre de archivo es muy largo. Pasando al siguiente.");
 
@@ -367,7 +368,7 @@ public class Transferencia {
                     byte[] nombreBytes = new byte[largo];
                     stream.readFully(nombreBytes);
 
-                    String nombre = new String(nombreBytes);
+                    String nombre = new String(nombreBytes, StandardCharsets.UTF_8);
 
                     // Cambiar nombre en la ventana de progreso
                     panelProgreso.setNombreArchivo(idPanel, nombre, ind + 1, cantidad);

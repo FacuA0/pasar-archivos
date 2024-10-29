@@ -11,6 +11,7 @@ import java.net.InterfaceAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -121,8 +122,8 @@ public class ClientFinder {
         public void run() {
             String nombreHostEscapado = nombreHost.replace("\\", "\\\\").replace(" | ", " \\| ");
             
-            byte[] contenidoAntiguo = ("Usuario:" + nombreHost).getBytes();
-            byte[] contenido = ("PasarArchivos | version=1.3 | nombre=" + nombreHostEscapado).getBytes();
+            byte[] contenidoAntiguo = ("Usuario:" + nombreHost).getBytes(StandardCharsets.UTF_8);
+            byte[] contenido = ("PasarArchivos | version=1.3 | nombre=" + nombreHostEscapado).getBytes(StandardCharsets.UTF_8);
             
             DatagramPacket packet = new DatagramPacket(contenido, contenido.length);
             packet.setPort(PUERTO);
@@ -268,7 +269,7 @@ public class ClientFinder {
                     
                     if (paquete.getLength() >= 13) {
                         if (firmaS.equals("PasarArchivos")) {
-                            String contenido = new String(datos, 0, paquete.getLength());
+                            String contenido = new String(datos, 0, paquete.getLength(), StandardCharsets.UTF_8);
                             String[] partes = contenido.split(" \\| ");
                             
                             for (int i = 1; i < partes.length; i++) {
@@ -290,12 +291,12 @@ public class ClientFinder {
                             }
                         }
                         else if (firmaS.startsWith("Usuario:")) {
-                            nombre = new String(datos, 8, paquete.getLength() - 8);
+                            nombre = new String(datos, 8, paquete.getLength() - 8, StandardCharsets.UTF_8);
                         }
                         else continue;
                     }
                     else if (firmaS.startsWith("Usuario:")) {
-                        nombre = new String(datos, 8, paquete.getLength() - 8);
+                        nombre = new String(datos, 8, paquete.getLength() - 8, StandardCharsets.UTF_8);
                     }
                     else continue;
                     
