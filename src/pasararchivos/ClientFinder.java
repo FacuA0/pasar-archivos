@@ -120,7 +120,9 @@ public class ClientFinder {
         
         @Override
         public void run() {
-            String nombreHostEscapado = nombreHost.replace("\\", "\\\\").replace(" | ", " \\| ");
+            String nombreHostEscapado = nombreHost
+                    .replace("\\", "\\\\")
+                    .replace(" | ", " \\| ");
             
             byte[] contenidoAntiguo = ("Usuario:" + nombreHost).getBytes(StandardCharsets.UTF_8);
             byte[] contenido = ("PasarArchivos | version=1.3 | nombre=" + nombreHostEscapado).getBytes(StandardCharsets.UTF_8);
@@ -265,38 +267,33 @@ public class ClientFinder {
                     
                     String nombre = "Desconocido";
                     String version = "1.2";
-                    String firmaS = new String(datos, 0, 13);
+                    String contenido = new String(datos, 0, paquete.getLength(), StandardCharsets.UTF_8);
                     
-                    if (paquete.getLength() >= 13) {
-                        if (firmaS.equals("PasarArchivos")) {
-                            String contenido = new String(datos, 0, paquete.getLength(), StandardCharsets.UTF_8);
-                            String[] partes = contenido.split(" \\| ");
-                            
-                            for (int i = 1; i < partes.length; i++) {
-                                int igual = partes[i].indexOf("=");
-                                if (igual == -1) continue;
-                                
-                                String clave = partes[i].substring(0, igual);
-                                String valor = partes[i].substring(igual + 1);
-                                
-                                valor = valor.replace(" \\| ", " | ");
-                                valor = valor.replace("\\\\", "\\");
-                                
-                                if (clave.equals("nombre")) {
-                                    nombre = valor;
-                                }
-                                else if (clave.equals("version")) {
-                                    version = valor;
-                                }
+                    if (contenido.startsWith("PasarArchivos | ")) {
+                        String[] partes = contenido.split(" \\| ");
+
+                        for (int i = 1; i < partes.length; i++) {
+                            int igual = partes[i].indexOf("=");
+                            if (igual == -1) continue;
+
+                            String clave = partes[i].substring(0, igual);
+                            String valor = partes[i].substring(igual + 1);
+
+                            valor = valor.replace(" \\| ", " | ");
+                            valor = valor.replace("\\\\", "\\");
+
+                            if (clave.equals("nombre")) {
+                                nombre = valor;
+                            }
+                            else if (clave.equals("version")) {
+                                version = valor;
                             }
                         }
-                        else if (firmaS.startsWith("Usuario:")) {
-                            nombre = new String(datos, 8, paquete.getLength() - 8, StandardCharsets.UTF_8);
-                        }
-                        else continue;
                     }
-                    else if (firmaS.startsWith("Usuario:")) {
-                        nombre = new String(datos, 8, paquete.getLength() - 8, StandardCharsets.UTF_8);
+                    else if (contenido.startsWith("Usuario:")) {
+                        if (contenido.length() > 8) {
+                            nombre = contenido.substring(8);
+                        }
                     }
                     else continue;
                     
@@ -313,7 +310,7 @@ public class ClientFinder {
                         Clientes nuevo = new Clientes(nombre, version, origen, ahora);
                         pares.put(origen.getHostAddress(), nuevo);
                     }
-                } 
+                }
                 catch (IOException ex) {
                     PasarArchivos.log.log(Level.SEVERE, "Error al esperar paquete.");
                 }
