@@ -138,17 +138,22 @@ public class Panel extends javax.swing.JFrame {
             public int getSize() { return strings.length; }
             public String getElementAt(int i) { return strings[i]; }
         });
+        listaArchivos.setToolTipText("Lista de archivos seleccionados para su transferencia.");
         scrollArchivos.setViewportView(listaArchivos);
+        listaArchivos.getAccessibleContext().setAccessibleName("Archivos seleccionados");
+        listaArchivos.getAccessibleContext().setAccessibleDescription("Lista de archivos seleccionados para ser transferidos");
 
         labelDispositivos.setText("Dispositivos disponibles");
 
         listaDispositivos.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        listaDispositivos.setToolTipText("Lista de dispositivos disponibles en la red para recibir archivos.");
         listaDispositivos.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
             public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
                 listaDispositivosValueChanged(evt);
             }
         });
         scrollDispositivos.setViewportView(listaDispositivos);
+        listaDispositivos.getAccessibleContext().setAccessibleName("Dispositivos disponibles");
 
         btnTransferir.setText("Transferir");
         btnTransferir.setEnabled(false);
@@ -167,6 +172,7 @@ public class Panel extends javax.swing.JFrame {
 
         labelNoIntenet.setForeground(new java.awt.Color(255, 51, 51));
         labelNoIntenet.setText("No hay conexión de red");
+        labelNoIntenet.setToolTipText("");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -215,6 +221,8 @@ public class Panel extends javax.swing.JFrame {
                     .addComponent(labelNoIntenet))
                 .addGap(8, 8, 8))
         );
+
+        salir.getAccessibleContext().setAccessibleDescription("");
 
         pack();
     }// </editor-fold>//GEN-END:initComponents

@@ -121,6 +121,7 @@ public class PanelProgreso extends javax.swing.JPanel {
 
         btnCancelar.setBackground(new java.awt.Color(242, 242, 242));
         btnCancelar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/cancelar.png"))); // NOI18N
+        btnCancelar.setToolTipText("Cancelar transferencia");
         btnCancelar.setBorder(null);
         btnCancelar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
