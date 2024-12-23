@@ -51,7 +51,7 @@ public class ClientFinder {
             nombreHost = "Desconocido";
         }
         
-        pares = new ConcurrentHashMap();
+        pares = new ConcurrentHashMap<>();
         
         emisor = new Envio();
         emisor.start();
@@ -61,7 +61,7 @@ public class ClientFinder {
     }
     
     public static HashMap<InetAddress, String> getDispositivos() {
-        HashMap<InetAddress, String> dispositivos = new HashMap();
+        HashMap<InetAddress, String> dispositivos = new HashMap<>();
         
         synchronized (LOCK) {    
             for (Clientes c: pares.values()) {
@@ -138,20 +138,18 @@ public class ClientFinder {
                 renovarDirecciones();
                 
                 try {
-                    System.out.println("Enviando paquetes");
+                    //System.out.println("Enviando paquetes");
                     
                     for (DireccionInterfaz direccion: direcciones) {
                         InetAddress destino = obtenerDestino(direccion);
                         packet.setAddress(destino);
                         
-                        //System.out.println("- Enviando a " + destino + " (" + direccion.getAddress() + ")");
                         packet.setData(contenidoAntiguo);
                         socketGlobal.send(packet);
                         
                         packet.setData(contenido);
                         socketGlobal.send(packet);
                     }
-                    //System.out.println();
                 }
                 catch (IOException e) {
                     PasarArchivos.logError(e, "Error de paquetes", "Error al enviar paquetes de descubrimiento.");
@@ -162,7 +160,6 @@ public class ClientFinder {
 
                 try {
                     long t2 = System.currentTimeMillis();
-                    System.out.println("Sleep de emisión: " + Math.max(0, 3000 - (t2 - t1)));
                     Thread.sleep(Math.max(0, 3000 - (t2 - t1)));
                 }
                 catch (InterruptedException e) {}

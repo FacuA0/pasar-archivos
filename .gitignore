@@ -1,5 +1,6 @@
 dist/
 logs/
 build/
+exe/
 versions/
 nbproject/private/

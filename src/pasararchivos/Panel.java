@@ -117,7 +117,7 @@ public class Panel extends javax.swing.JFrame {
         chooser.setDialogTitle("Elegir archivos");
         chooser.setFileFilter(null);
 
-        setTitle("Pasar Archivos 1.3");
+        setTitle("Pasar Archivos 1.3.1");
         addWindowListener(new java.awt.event.WindowAdapter() {
             public void windowClosing(java.awt.event.WindowEvent evt) {
                 formWindowClosing(evt);
@@ -172,7 +172,7 @@ public class Panel extends javax.swing.JFrame {
 
         labelNoIntenet.setForeground(new java.awt.Color(255, 51, 51));
         labelNoIntenet.setText("No hay conexión de red");
-        labelNoIntenet.setToolTipText("");
+        labelNoIntenet.setToolTipText("No hay interfaces de red disponibles para escuchar y/o enviar señales a otros dispositivos.");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -221,8 +221,6 @@ public class Panel extends javax.swing.JFrame {
                     .addComponent(labelNoIntenet))
                 .addGap(8, 8, 8))
         );
-
-        salir.getAccessibleContext().setAccessibleDescription("");
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
