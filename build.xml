@@ -85,7 +85,7 @@
 	<unjar src="${dist.jar}" dest="${jar.dir}"/>
 
 	<delete dir="${jar.dir}/libs"/>
-	<delete dir="${jar.dir}/images"/>
+	<!-- <delete dir="${jar.dir}/images"/> --> <!-- No usado por posible error -->
 
 	<delete file="${dist.jar}"/>
 	<jar destfile="${dist.jar}" basedir="${jar.dir}" manifest="${jar.dir}/META-INF/MANIFEST.MF"/>
