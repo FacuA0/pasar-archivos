@@ -153,6 +153,9 @@ public class Transferencia {
             Socket socket;
             DataOutputStream stream;
             
+            // Abrir barra en la ventana de progreso
+            int idPanel = panelProgreso.agregarTransferencia(this, Progreso.Modo.ENVIAR, items.ip);
+            
             // Crear conexión
             try {
                 socket = new Socket(items.ip, 9060);
@@ -162,20 +165,19 @@ public class Transferencia {
             catch (SocketException e) {
                 String mensaje = "No se pudo conectar con el dispositivo. Probablemente esté inactivo o el programa no está abierto. Vuelva a intentarlo.";
                 PasarArchivos.error(panelProgreso, e, "Error al conectar", mensaje);
+                panelProgreso.removerTransferencia(idPanel);
                 return;
             }
             catch (IOException e) {
                 String mensaje = "Hubo un error de entrada/salida al crear el socket.";
                 PasarArchivos.error(panelProgreso, e, "Error de I/O", mensaje);
+                panelProgreso.removerTransferencia(idPanel);
                 return;
             }
             
             // Hilo para detectar cierre de socket remoto (cancelación remota)
             Thread hiloCancelar = new Thread(this::hiloCancelacion);
             hiloCancelar.start();
-            
-            // Abrir barra en la ventana de progreso
-            int idPanel = panelProgreso.agregarTransferencia(this, Progreso.Modo.ENVIAR, items.ip);
 
             // Empezar a enviar datos
             try {

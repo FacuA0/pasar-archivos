@@ -67,7 +67,7 @@
       <SubComponents>
         <Component class="javax.swing.JLabel" name="txtNombre">
           <Properties>
-            <Property name="text" type="java.lang.String" value="Esperando..."/>
+            <Property name="text" type="java.lang.String" value="Conectando..."/>
           </Properties>
         </Component>
         <Component class="javax.swing.Box$Filler" name="filler1">
@@ -89,6 +89,7 @@
     </Container>
     <Component class="javax.swing.JProgressBar" name="barraProgreso">
       <Properties>
+        <Property name="indeterminate" type="boolean" value="true"/>
         <Property name="maximumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
           <Dimension value="[32767, 24]"/>
         </Property>

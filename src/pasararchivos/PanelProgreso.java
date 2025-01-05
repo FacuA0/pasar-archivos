@@ -32,13 +32,17 @@ public class PanelProgreso extends javax.swing.JPanel {
         barraProgreso.setValue(valor);
     }
     
+    public void setModoBarra(boolean indeterminado) {
+        barraProgreso.setIndeterminate(indeterminado);
+    }
+    
     public void setNombreArchivo(String nombre) {
         if (cancelando) return;
         
         nombre = abreviarNombreArchivo(nombre);
         
         if (datos.modo == Progreso.Modo.ENVIAR) {
-            txtNombre.setText("Transfiriendo " + nombre);
+            txtNombre.setText("Enviando " + nombre);
         }
         else {
             txtNombre.setText("Recibiendo " + nombre);
@@ -107,13 +111,14 @@ public class PanelProgreso extends javax.swing.JPanel {
         jPanel1.setPreferredSize(new java.awt.Dimension(376, 16));
         jPanel1.setLayout(new javax.swing.BoxLayout(jPanel1, javax.swing.BoxLayout.LINE_AXIS));
 
-        txtNombre.setText("Esperando...");
+        txtNombre.setText("Conectando...");
         jPanel1.add(txtNombre);
         jPanel1.add(filler1);
 
         txtCantidad.setText("0/0");
         jPanel1.add(txtCantidad);
 
+        barraProgreso.setIndeterminate(true);
         barraProgreso.setMaximumSize(new java.awt.Dimension(32767, 24));
         barraProgreso.setPreferredSize(new java.awt.Dimension(146, 24));
 

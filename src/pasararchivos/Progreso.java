@@ -129,6 +129,7 @@ public class Progreso extends javax.swing.JFrame {
         
         datos.panel.setCantidad(indice, cantidad);
         datos.panel.setNombreArchivo(archivo);
+        datos.panel.setModoBarra(false);
     }
     
     public void setDatos(int idDatos, long pasados, long total, long velocidad) {
