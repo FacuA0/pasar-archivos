@@ -141,7 +141,6 @@ public class Panel extends javax.swing.JFrame {
         listaArchivos.setToolTipText("Lista de archivos seleccionados para su transferencia.");
         scrollArchivos.setViewportView(listaArchivos);
         listaArchivos.getAccessibleContext().setAccessibleName("Archivos seleccionados");
-        listaArchivos.getAccessibleContext().setAccessibleDescription("Lista de archivos seleccionados para ser transferidos");
 
         labelDispositivos.setText("Dispositivos disponibles");
 

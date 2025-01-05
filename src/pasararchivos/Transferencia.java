@@ -287,8 +287,8 @@ public class Transferencia {
                 String mensaje = "Hubo un error durante la transferencia.";
                 PasarArchivos.error(panelProgreso, e, "Error general", mensaje);
             }
-
-            panelProgreso.removerTransferencia(idPanel);
+            
+            panelProgreso.finalizar(idPanel);
 
             // Cerrar socket
             try {
@@ -298,6 +298,13 @@ public class Transferencia {
                 String mensaje = "Hubo un error al cerrar el socket.";
                 PasarArchivos.logWarning(e, "Error general", mensaje);
             }
+            
+            try {
+                Thread.sleep(1000);
+            }
+            catch (InterruptedException e) {}
+            
+            panelProgreso.removerTransferencia(idPanel);
         }
         
         @Override
@@ -478,8 +485,8 @@ public class Transferencia {
                 String mensaje = "Se omitieron " + omitidos + " archivos en la transferencia por uno o varios errores en el dispositivo origen.";
                 PasarArchivos.advertir(panelProgreso, "Archivos omitidos", mensaje);
             }
-                
-            panelProgreso.removerTransferencia(idPanel);
+            
+            panelProgreso.finalizar(idPanel);
 
             try {
                 socket.setSoLinger(cerrar, 3000);
@@ -489,6 +496,13 @@ public class Transferencia {
                 String mensaje = "Hubo un error al cerrar el socket.";
                 PasarArchivos.logWarning(e, "Error de I/O", mensaje);
             }
+            
+            try {
+                Thread.sleep(1000);
+            }
+            catch (InterruptedException e) {}
+            
+            panelProgreso.removerTransferencia(idPanel);
         }
         
         @Override

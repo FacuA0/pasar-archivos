@@ -60,6 +60,10 @@ public class PanelProgreso extends javax.swing.JPanel {
         txtDatos.setText(porcentaje + " (" + pasados + " / " + total + ") - " + velocidad);
     }
     
+    public void finalizar() {
+        btnCancelar.setEnabled(false);
+    }
+    
     private String abreviarNombreArchivo(String archivo) {
         FontMetrics medidas = txtNombre.getFontMetrics(txtNombre.getFont());
         int anchoNombre = medidas.stringWidth(archivo);
@@ -71,11 +75,11 @@ public class PanelProgreso extends javax.swing.JPanel {
         }
         
         // Separar nombre y extensión y medir cada uno
-        int indiceSufijo = archivo.lastIndexOf(".");
+        int punto = archivo.lastIndexOf(".");
         
-        String sufijo = indiceSufijo > 0 ? archivo.substring(indiceSufijo) : "";
-        String nombre = indiceSufijo > 0 ? archivo.substring(0, indiceSufijo) : archivo;
-        String puntos = indiceSufijo > 0 ? ".." : "...";
+        String sufijo = punto > 0 ? archivo.substring(punto) : "";
+        String nombre = punto > 0 ? archivo.substring(0, punto) : archivo;
+        String puntos = punto > 0 ? ".." : "...";
         String nombreCorto = "";
         
         for (int i = Math.min(nombre.length() - 1, 120); i > 1; i--) {

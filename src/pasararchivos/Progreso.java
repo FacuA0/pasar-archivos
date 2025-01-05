@@ -166,6 +166,11 @@ public class Progreso extends javax.swing.JFrame {
         //txtDatos.setText(pasados + " / " + total + " (" + (progreso * 100) + ")");
     }
     
+    public void finalizar(int idDatos) {
+        Datos d = getDatos(idDatos);
+        d.panel.finalizar();
+    }
+    
     public void setModo(Modo modo) {
         //this.modo = modo;
     }
