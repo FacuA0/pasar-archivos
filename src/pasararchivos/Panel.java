@@ -11,6 +11,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.WindowConstants;
 import javax.swing.plaf.nimbus.NimbusLookAndFeel;
 
 /**
@@ -34,6 +35,10 @@ public class Panel extends javax.swing.JFrame {
         setAlwaysOnTop(true);
         setLocationRelativeTo(null);
         setIconImage(Toolkit.getDefaultToolkit().getImage("src/images/icono.png"));
+        
+        if (!PasarArchivos.systemTray) {
+            setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+        }
         
         labelNoIntenet.setVisible(false);
         
