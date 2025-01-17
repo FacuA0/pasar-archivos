@@ -26,7 +26,7 @@ public class Progreso extends javax.swing.JFrame {
         setResizable(false);
         setAlwaysOnTop(true);
         setLocationRelativeTo(null);
-        setIconImage(Toolkit.getDefaultToolkit().getImage("src/images/icono.png"));
+        setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("/images/icono.png")));
         
         // Variables
         transferencias = new ArrayList();

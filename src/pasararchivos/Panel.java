@@ -34,7 +34,7 @@ public class Panel extends javax.swing.JFrame {
         setResizable(false);
         setAlwaysOnTop(true);
         setLocationRelativeTo(null);
-        setIconImage(Toolkit.getDefaultToolkit().getImage("src/images/icono.png"));
+        setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("/images/icono.png")));
         
         if (!PasarArchivos.systemTray) {
             setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
