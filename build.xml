@@ -77,109 +77,104 @@
     nbproject/build-impl.xml file. 
 
     -->
+	
     <target name="-simplify-jar">
-	<property name="jar.dir" value="${dist.jar.dir}/jar"/>
-	<echo level="info" message="Simplificando jar..."/>
+        <property name="jar.dir" value="${dist.jar.dir}/jar"/>
+        <echo level="info" message="Simplificando jar..."/>
 
-	<mkdir dir="${jar.dir}"/>
-	<unjar src="${dist.jar}" dest="${jar.dir}"/>
+        <mkdir dir="${jar.dir}"/>
+        <unjar src="${dist.jar}" dest="${jar.dir}"/>
 
-	<delete dir="${jar.dir}/libs"/>
-	<!-- <delete dir="${jar.dir}/images"/> --> <!-- No usado por posible error -->
+		<!-- Borrar bibliotecas de JAR para ahorrar espacio (ya están en dir principal) -->
+        <delete dir="${jar.dir}/libs"/>
+        <!-- <delete dir="${jar.dir}/images"/> --> <!-- No usado por error -->
 
-	<delete file="${dist.jar}"/>
-	<jar destfile="${dist.jar}" basedir="${jar.dir}" manifest="${jar.dir}/META-INF/MANIFEST.MF"/>
+        <delete file="${dist.jar}"/>
+        <jar destfile="${dist.jar}" basedir="${jar.dir}" manifest="${jar.dir}/META-INF/MANIFEST.MF"/>
 
-	<delete dir="${jar.dir}"/>
-    </target>
-
-    <!-- No usado -->
-    <target name="-copy-images">
-	<echo level="info" message="Copiando recursos..."/>
-
-	<!-- Código reemplazado por -package-jar
-	<copy todir="${dist.jar.dir}/src/images" preservelastmodified="true">
-	    <fileset dir="src/images"/>
-	</copy>
-	-->
-
-	<delete dir="${exe.dir}/src"/>
-	<copy todir="${exe.dir}/src/images" preservelastmodified="true">
-	    <fileset dir="src/images"/>
-	</copy>
+        <delete dir="${jar.dir}"/>
     </target>
 
     <target name="-zip-jar">
-	<property name="dist.zipdir" value="${dist.jar.dir}/zip"/>
-	<echo level="info" message="Empaquetando versión jar..."/>
+        <property name="dist.zipdir" value="${dist.jar.dir}/zip"/>
+        <echo level="info" message="Empaquetando versión jar..."/>
 
-	<mkdir dir="${dist.zipdir}"/>
-	
-	<copy todir="${dist.zipdir}/src/images" preservelastmodified="true">
-	    <fileset dir="src/images"/>
-	</copy>
-	<copy todir="${dist.zipdir}/lib" preservelastmodified="true">
-	    <fileset dir="${dist.jar.dir}/lib"/>
-	</copy>
-	<copy todir="${dist.zipdir}/lib" preservelastmodified="true">
-	    <fileset dir="${exe.dir}/licenses"/>
-	</copy>
-	<copy file="${dist.jar}" todir="${dist.zipdir}"/>
-	<copy file="${proj.license}" todir="${dist.zipdir}"/>
-	<copy file="${proj.readme}" todir="${dist.zipdir}"/>
+        <mkdir dir="${dist.zipdir}"/>
+        
+        <copy todir="${dist.zipdir}/src/images" preservelastmodified="true">
+            <fileset dir="src/images"/>
+        </copy>
+        <copy todir="${dist.zipdir}/lib" preservelastmodified="true">
+            <fileset dir="${dist.jar.dir}/lib"/>
+        </copy>
+        <copy todir="${dist.zipdir}/lib" preservelastmodified="true">
+            <fileset dir="./licenses"/>
+        </copy>
+        <copy file="${dist.jar}" todir="${dist.zipdir}"/>
+        <copy file="${proj.license}" todir="${dist.zipdir}"/>
+        <copy file="${proj.readme}" todir="${dist.zipdir}"/>
 
-	<zip basedir="${dist.zipdir}" destfile="${dist.jar.dir}/PasarArchivos.zip"/>
+        <zip basedir="${dist.zipdir}" destfile="${dist.jar.dir}/PasarArchivos.zip"/>
 
-	<delete dir="${dist.zipdir}"/>
+        <delete dir="${dist.zipdir}"/>
     </target>
 
     <target name="-create-exe">
-	<property name="exe.cfg" value="${exe.dir}/config.xml"/>
-	<echo level="info" message="Creando .exe..."/>
+        <property name="exe.cfg" value="${exe.dir}/config.xml"/>
+        <echo level="info" message="Creando .exe..."/>
 
-	<delete file="${exe.jar}"/>
-	<delete file="${exe.exe}"/>
+		<!-- Borrar archivos antiguos -->
+        <delete file="${exe.jar}"/>
+        <delete file="${exe.exe}"/>
 
-	<copy file="${dist.jar}" todir="${exe.dir}"/>
-	<exec executable="launch4jc">
-	    <arg line="${exe.cfg}"/>
-	</exec>
+		<!-- Copiar nuevo JAR y correr Launch4J -->
+        <copy file="${dist.jar}" todir="${exe.dir}"/>
+        <exec executable="launch4jc" failifexecutionfails="false">
+            <arg line="${exe.cfg}"/>
+        </exec>
+		
+		<!-- Si no se pudo crear, no empaquetar versión con exe -->
+		<available file="${exe.exe}" property="exe.built"/>
     </target>
 
-    <target name="-zip-exe">
-	<property name="dist.exezipdir" value="${exe.dir}/zip"/>
-	<echo level="info" message="Empaquetando versión exe..."/>
+    <target name="-zip-exe" if="exe.built">
+        <property name="dist.exezipdir" value="${exe.dir}/zip"/>
+        <echo level="info" message="Empaquetando versión exe..."/>
 
-	<mkdir dir="${dist.exezipdir}"/>
-	
-	<copy todir="${dist.exezipdir}/src/images" preservelastmodified="true">
-	    <fileset dir="src/images"/>
-	</copy>
-	<copy todir="${dist.exezipdir}/lib" preservelastmodified="true">
-	    <fileset dir="${dist.jar.dir}/lib"/>
-	</copy>
-	<copy todir="${dist.exezipdir}/lib" preservelastmodified="true">
-	    <fileset dir="${exe.dir}/licenses"/>
-	</copy>
-	<copy file="${exe.jar}" todir="${dist.exezipdir}"/>
-	<copy file="${proj.license}" todir="${dist.exezipdir}"/>
-	<copy file="${proj.readme}" todir="${dist.exezipdir}"/>
-	<copy file="${exe.exe}" todir="${dist.exezipdir}"/>
+		<!-- Crear carpeta de destino de archivos ZIP -->
+        <mkdir dir="${dist.exezipdir}"/>
+        
+		<!-- Copiar archivos -->
+        <copy todir="${dist.exezipdir}/src/images" preservelastmodified="true">
+            <fileset dir="src/images"/>
+        </copy>
+        <copy todir="${dist.exezipdir}/lib" preservelastmodified="true">
+            <fileset dir="${dist.jar.dir}/lib"/>
+        </copy>
+        <copy todir="${dist.exezipdir}/lib" preservelastmodified="true">
+            <fileset dir="./licenses"/>
+        </copy>
+        <copy file="${exe.jar}" todir="${dist.exezipdir}"/>
+        <copy file="${proj.license}" todir="${dist.exezipdir}"/>
+        <copy file="${proj.readme}" todir="${dist.exezipdir}"/>
+        <copy file="${exe.exe}" todir="${dist.exezipdir}"/>
 
-	<zip basedir="${dist.exezipdir}" destfile="${exe.dir}/PasarArchivos-win.zip"/>
+		<!-- Crear ZIP -->
+        <zip basedir="${dist.exezipdir}" destfile="${exe.dir}/PasarArchivos-win.zip"/>
 
-	<delete dir="${dist.exezipdir}"/>
+		<!-- Borrar carpeta -->
+        <delete dir="${dist.exezipdir}"/>
     </target>
 
     <target name="-post-jar" depends="-simplify-jar,-create-exe,-zip-jar,-zip-exe">
-	<property name="facu.dir" value="exe/ant"/>
-	<property name="facu.file" value="${facu.dir}/hola.txt"/>
+        <!--
+        <property name="facu.dir" value="exe/ant"/>
+        <property name="facu.file" value="${facu.dir}/hola.txt"/>
 
-	<!--
         <mkdir dir="${facu.dir}"/>
-	<echo level="info" message="Hola mundo!"/>
-	<touch file="${facu.file}"/>
+        <echo level="info" message="Hola mundo!"/>
+        <touch file="${facu.file}"/>
         <echo message="Hola!!!!!!!!!111!!" file="${facu.file}"/>
-	-->
+        -->
     </target>
 </project>

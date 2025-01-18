@@ -1,0 +1,2 @@
+FlatLaf: licensed under the Apache 2.0 license.
+directories: licensed under the MPL 2.0 license.
