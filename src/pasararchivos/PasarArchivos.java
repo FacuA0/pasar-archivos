@@ -28,6 +28,8 @@ import javax.swing.JOptionPane;
 public class PasarArchivos {
     public static Panel panel;
     public static final Logger log = Logger.getLogger("PasarArchivos");
+    public static final String NOMBRE_APP = "Pasar Archivos";
+    public static final String VERSION_APP = "1.3.3";
     public static boolean systemTray = true;
     
     /**
@@ -211,7 +213,7 @@ public class PasarArchivos {
         menuIcono.add(itemSalir);
         
         System.out.println("Creando el ícono de bandeja");
-        TrayIcon icono = new TrayIcon(image, "Pasar archivos", menuIcono);
+        TrayIcon icono = new TrayIcon(image, NOMBRE_APP, menuIcono);
         icono.setImageAutoSize(true);
         
         icono.addMouseListener(new MouseListener() {

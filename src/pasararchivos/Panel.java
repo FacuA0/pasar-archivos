@@ -34,6 +34,8 @@ public class Panel extends javax.swing.JFrame {
         setResizable(false);
         setAlwaysOnTop(true);
         setLocationRelativeTo(null);
+        
+        setTitle(PasarArchivos.NOMBRE_APP + " " + PasarArchivos.VERSION_APP);
         setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("/images/icono.png")));
         
         if (!PasarArchivos.systemTray) {
@@ -122,7 +124,7 @@ public class Panel extends javax.swing.JFrame {
         chooser.setDialogTitle("Elegir archivos");
         chooser.setFileFilter(null);
 
-        setTitle("Pasar Archivos 1.3.2");
+        setTitle("Pasar Archivos");
         addWindowListener(new java.awt.event.WindowAdapter() {
             public void windowClosing(java.awt.event.WindowEvent evt) {
                 formWindowClosing(evt);
